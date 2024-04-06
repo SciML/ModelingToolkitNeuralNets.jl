@@ -83,7 +83,6 @@ function loss(x, (prob, sol_ref, get_vars, get_refs))
     end
 end
 
-
 of = OptimizationFunction{true}(loss, AutoForwardDiff())
 
 ps = (prob, sol_ref, get_vars, get_refs);
@@ -100,15 +99,15 @@ op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs))
 
 # oh = []
 
-plot_cb = (opt_state, loss) -> begin
-    @info "step $(opt_state.iter), loss: $loss"
-    # push!(oh, opt_state)
-    # new_p = SciMLStructures.replace(Tunable(), prob.p, opt_state.u)
-    # new_prob = remake(prob, p = new_p)
-    # sol = solve(new_prob, Rodas4())
-    # display(plot(sol))
-    false
-end
+# plot_cb = (opt_state, loss) -> begin
+#     @info "step $(opt_state.iter), loss: $loss"
+#     push!(oh, opt_state)
+#     new_p = SciMLStructures.replace(Tunable(), prob.p, opt_state.u)
+#     new_prob = remake(prob, p = new_p)
+#     sol = solve(new_prob, Rodas4())
+#     display(plot(sol))
+#     false
+# end
 
 res = solve(op, Adam(), maxiters = 2000)#, callback = plot_cb)
 
