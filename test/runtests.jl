@@ -1,14 +1,8 @@
 using UDEComponents
 using Test
-using Aqua
-using JET
+using SafeTestsets
 
-@testset "UDEComponents.jl" begin
-    @testset "Code quality (Aqua.jl)" begin
-        Aqua.test_all(UDEComponents)
-    end
-    @testset "Code linting (JET.jl)" begin
-        JET.test_package(UDEComponents; target_defined_modules = true)
-    end
-    # Write your tests here.
+@testset verbose=true "UDEComponents.jl" begin
+    @safetestset "QA" include("qa.jl")
+    @safetestset "Basic" include("lotka_volterra.jl")
 end
