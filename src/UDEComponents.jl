@@ -11,7 +11,6 @@ using ComponentArrays: ComponentArray
 export create_ude_component, multi_layer_feed_forward
 
 include("utils.jl")
-include("hacks.jl") # this should be removed / upstreamed
 
 """
     create_ude_component(n_input = 1, n_output = 1;
@@ -40,6 +39,10 @@ function create_ude_component(n_input = 1,
     @named ude_comp = ODESystem(
         eqs, t_nounits, [], [p, T], systems = [input, output])
     return ude_comp
+end
+
+function lazyconvert(T, x::Symbolics.Arr)
+    Symbolics.array_term(convert, T, x, size = size(x))
 end
 
 end
