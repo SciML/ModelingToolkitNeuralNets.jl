@@ -6,7 +6,6 @@ using Symbolics: Symbolics, @register_array_symbolic, @wrapped
 using LuxCore: stateless_apply
 using Lux: Lux
 using Random: Xoshiro
-using NNlib: softplus
 using ComponentArrays: ComponentArray
 
 export create_ude_component, multi_layer_feed_forward

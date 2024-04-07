@@ -10,6 +10,7 @@ using OptimizationOptimisers: Adam
 using SciMLStructures
 using SciMLStructures: Tunable
 using ForwardDiff
+using StableRNGs
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
@@ -41,7 +42,9 @@ function lotka_true()
 end
 
 model = lotka_ude()
-nn = create_ude_component(2, 2)
+
+chain = multi_layer_feed_forward(2, 2)
+nn = create_ude_component(2, 2; chain, rng = StableRNG(42))
 
 eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]
@@ -71,7 +74,7 @@ function loss(x, (prob, sol_ref, get_vars, get_refs))
     loss = zero(eltype(x))
 
     for i in eachindex(new_sol.u)
-        loss += sum(sqrt.(abs2.(get_vars(new_sol, i) .- get_refs(sol_ref, i))))
+        loss += sum(abs2.(get_vars(new_sol, i) .- get_refs(sol_ref, i)))
     end
 
     if SciMLBase.successful_retcode(new_sol)
@@ -106,12 +109,16 @@ op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs))
 #     false
 # end
 
-res = solve(op, Adam(), maxiters = 2000)#, callback = plot_cb)
+res = solve(op, Adam(), maxiters = 5000)#, callback = plot_cb)
 
 @test res.objective < 1
 
 res_p = SciMLStructures.replace(Tunable(), prob.p, res)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4())
+
+# using Plots
+# plot(sol_ref, idxs = [model_true.x, model_true.y])
+# plot!(res_sol, idxs = [sys.lotka.x, sys.lotka.y])
 
 @test SciMLBase.successful_retcode(res_sol)
