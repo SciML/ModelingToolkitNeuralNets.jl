@@ -15,7 +15,6 @@ include("utils.jl")
 include("hacks.jl") # this should be removed / upstreamed
 
 """
-
     create_ude_component(n_input = 1, n_output = 1;
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0))
