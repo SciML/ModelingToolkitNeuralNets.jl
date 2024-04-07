@@ -14,7 +14,7 @@ using StableRNGs
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 β=0.9 γ=0.8 δ=1.8
+    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
     Dt = ModelingToolkit.D_nounits
     @named nn_in = RealInput(nin = 2)
     @named nn_out = RealOutput(nout = 2)
@@ -44,7 +44,7 @@ end
 model = lotka_ude()
 
 chain = multi_layer_feed_forward(2, 2)
-nn = create_ude_component(2, 2; chain, rng = StableRNG(42))
+nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
 
 eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]
@@ -67,7 +67,7 @@ get_refs = getu(model_true, [model_true.x, model_true.y])
 
 function loss(x, (prob, sol_ref, get_vars, get_refs))
     new_p = SciMLStructures.replace(Tunable(), prob.p, x)
-    new_prob = remake(prob, p = new_p)
+    new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
     new_sol = solve(new_prob, Rodas4(), saveat = ts)
 
@@ -115,7 +115,7 @@ res = solve(op, Adam(), maxiters = 5000)#, callback = plot_cb)
 
 res_p = SciMLStructures.replace(Tunable(), prob.p, res)
 res_prob = remake(prob, p = res_p)
-res_sol = solve(res_prob, Rodas4())
+res_sol = solve(res_prob, Rodas4(), saveat=sol_ref.t)
 
 # using Plots
 # plot(sol_ref, idxs = [model_true.x, model_true.y])
