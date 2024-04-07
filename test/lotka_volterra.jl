@@ -43,10 +43,8 @@ end
 model = lotka_ude()
 nn = create_ude_component(2, 2)
 
-eqs = [
-    connect(model.nn_in, nn.output)
-    connect(model.nn_out, nn.input)
-]
+eqs = [connect(model.nn_in, nn.output)
+       connect(model.nn_out, nn.input)]
 
 ude_sys = complete(ODESystem(
     eqs, ModelingToolkit.t_nounits, systems = [model, nn], name = :ude_sys))
@@ -93,7 +91,6 @@ ps = (prob, sol_ref, get_vars, get_refs);
 @test all(.!isnan.(ForwardDiff.gradient(Base.Fix2(of, ps), x0)))
 
 op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs))
-
 
 # using Plots
 
