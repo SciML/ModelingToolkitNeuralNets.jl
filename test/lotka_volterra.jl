@@ -14,7 +14,7 @@ using StableRNGs
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
+    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
     Dt = ModelingToolkit.D_nounits
     @named nn_in = RealInput(nin = 2)
     @named nn_out = RealOutput(nout = 2)
@@ -115,7 +115,7 @@ res = solve(op, Adam(), maxiters = 5000)#, callback = plot_cb)
 
 res_p = SciMLStructures.replace(Tunable(), prob.p, res)
 res_prob = remake(prob, p = res_p)
-res_sol = solve(res_prob, Rodas4(), saveat=sol_ref.t)
+res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 
 # using Plots
 # plot(sol_ref, idxs = [model_true.x, model_true.y])
