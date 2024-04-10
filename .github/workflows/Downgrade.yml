@@ -1,6 +1,8 @@
 name: Downgrade
 on:
   pull_request:
+    branches:
+      - main
     paths-ignore:
       - 'docs/**'
   push:
@@ -8,16 +10,24 @@ on:
       - main
     paths-ignore:
       - 'docs/**'
+  schedule:
+    - cron: '44 4 * * 4'
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    env:
+      GROUP: ${{ matrix.group }}    
     strategy:
       fail-fast: false
       matrix:
+        group:
+          - Core
         version:
           - '1'
         os:
           - ubuntu-latest
+          - macos-latest
+          - windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
