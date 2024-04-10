@@ -5,6 +5,8 @@ on:
       - main
     tags: '*'
   pull_request:
+  schedule:
+    - cron: '44 4 * * 4'
 jobs:
   build:
     runs-on: ubuntu-latest
