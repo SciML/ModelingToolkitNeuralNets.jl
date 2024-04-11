@@ -1,6 +1,6 @@
 using Test
 using JET
-using UDEComponents
+using ModelingToolkitNeuralNets
 using ModelingToolkit
 using ModelingToolkitStandardLibrary.Blocks
 using OrdinaryDiffEq
@@ -88,8 +88,8 @@ of = OptimizationFunction{true}(loss, AutoForwardDiff())
 
 ps = (prob, sol_ref, get_vars, get_refs);
 
-@test_call target_modules=(UDEComponents,) loss(x0, ps)
-@test_opt target_modules=(UDEComponents,) loss(x0, ps)
+@test_call target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
+@test_opt target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 
 @test all(.!isnan.(ForwardDiff.gradient(Base.Fix2(of, ps), x0)))
 

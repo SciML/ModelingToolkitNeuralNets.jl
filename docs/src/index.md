@@ -1,16 +1,16 @@
 ```@meta
-CurrentModule = UDEComponents
+CurrentModule = ModelingToolkitNeuralNets
 ```
 
-# UDEComponents
+# ModelingToolkitNeuralNets
 
-Documentation for [UDEComponents](https://github.com/SebastianM-C/UDEComponents.jl).
+Documentation for [ModelingToolkitNeuralNets](https://github.com/SebastianM-C/ModelingToolkitNeuralNets.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [UDEComponents]
+Modules = [ModelingToolkitNeuralNets]
 ```
 
 ## Reproducibility

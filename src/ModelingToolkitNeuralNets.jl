@@ -1,4 +1,4 @@
-module UDEComponents
+module ModelingToolkitNeuralNets
 
 using ModelingToolkit: @parameters, @named, ODESystem, t_nounits
 using ModelingToolkitStandardLibrary.Blocks: RealInput, RealOutput
