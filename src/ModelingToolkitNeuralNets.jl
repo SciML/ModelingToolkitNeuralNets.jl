@@ -15,16 +15,19 @@ include("utils.jl")
 """
     NeuralNetworkBlock(n_input = 1, n_output = 1;
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0), eltype = Float64)
+        rng = Xoshiro(0),
+        init_params = Lux.initialparameters(rng, chain),
+        eltype = Float64)
 
 Create an `ODESystem` with a neural network inside.
 """
 function NeuralNetworkBlock(n_input = 1,
         n_output = 1;
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0), eltype = Float64)
-    lux_p = Lux.initialparameters(rng, chain)
-    ca = ComponentArray{eltype}(lux_p)
+        rng = Xoshiro(0),
+        init_params = Lux.initialparameters(rng, chain),
+        eltype = Float64)
+    ca = ComponentArray{eltype}(init_params)
 
     @parameters p[1:length(ca)] = Vector(ca)
     @parameters T::typeof(typeof(p))=typeof(p) [tunable = false]
