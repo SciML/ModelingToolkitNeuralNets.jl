@@ -1,22 +1,29 @@
 using ModelingToolkitNeuralNets
 using Documenter
+ENV["GKSwstype"] = "100"
+ENV["JULIA_DEBUG"] = "Documenter"
 
 cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
 cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 
-DocMeta.setdocmeta!(ModelingToolkitNeuralNets, :DocTestSetup, :(using ModelingToolkitNeuralNets); recursive = true)
+DocMeta.setdocmeta!(ModelingToolkitNeuralNets, :DocTestSetup,
+    :(using ModelingToolkitNeuralNets); recursive = true)
 
 makedocs(;
     modules = [ModelingToolkitNeuralNets],
     authors = "Sebastian Micluța-Câmpeanu <sebastian.mc95@proton.me> and contributors",
     sitename = "ModelingToolkitNeuralNets.jl",
-    format = Documenter.HTML(;
-        canonical = "https://SciML.github.io/ModelingToolkitNeuralNets.jl",
-        edit_link = "main",
-        assets = String[]
-    ),
+    format = Documenter.HTML(assets = ["assets/favicon.ico"],
+        canonical = "https://docs.sciml.ai/ModelingToolkitNeuralNets.jl/stable/"),
+    clean = true,
+    doctest = false,
+    linkcheck = true,
     pages = [
-        "Home" => "index.md"
+        "Home" => "index.md",
+        "Tutorials" => [
+            "Friction Model" => "friction.md"
+        ],
+        "API" => "api.md"
     ]
 )
 

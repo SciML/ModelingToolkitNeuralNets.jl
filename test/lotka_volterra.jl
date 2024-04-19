@@ -16,8 +16,8 @@ function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
     @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
     Dt = ModelingToolkit.D_nounits
-    @named nn_in = RealInput(nin = 2)
-    @named nn_out = RealOutput(nout = 2)
+    @named nn_in = RealInputArray(nin = 2)
+    @named nn_out = RealOutputArray(nout = 2)
 
     eqs = [
         Dt(x) ~ α * x + nn_in.u[1],
@@ -50,7 +50,8 @@ eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]
 
 ude_sys = complete(ODESystem(
-    eqs, ModelingToolkit.t_nounits, systems = [model, nn], name = :ude_sys))
+    eqs, ModelingToolkit.t_nounits, systems = [model, nn],
+    name = :ude_sys, defaults = [nn.input.u => [0.0, 0.0]]))
 
 sys = structural_simplify(ude_sys)
 
