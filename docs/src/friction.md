@@ -152,6 +152,7 @@ res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 @test first.(sol_ref.u)≈first.(res_sol.u) rtol=1e-3 #hide
 @test friction.(first.(sol_ref.u))≈(Fu .- first.(res_sol(res_sol.t, Val{1}).u)) rtol=1e-1 #hide
+nothing #hide
 ```
 
 Also, it would be interesting to check the simulation before the training to get an idea of the starting point of the network.
