@@ -29,5 +29,6 @@ makedocs(;
 
 deploydocs(;
     repo = "github.com/SciML/ModelingToolkitNeuralNets.jl",
-    devbranch = "main"
+    devbranch = "main",
+    push_preview = true
 )
