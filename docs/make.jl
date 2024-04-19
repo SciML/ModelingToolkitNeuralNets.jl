@@ -1,5 +1,7 @@
 using ModelingToolkitNeuralNets
 using Documenter
+ENV["GKSwstype"] = "100"
+ENV["JULIA_DEBUG"] = "Documenter"
 
 cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
 cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)

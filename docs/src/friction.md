@@ -21,6 +21,7 @@ using SymbolicIndexingInterface
 using StableRNGs
 using Lux
 using Plots
+using Test #hide
 ```
 
 ## Problem Setup
