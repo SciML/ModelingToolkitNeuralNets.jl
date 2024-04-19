@@ -4,7 +4,7 @@ CurrentModule = ModelingToolkitNeuralNets
 
 # ModelingToolkitNeuralNets
 
-Documentation for [ModelingToolkitNeuralNets](https://github.com/SebastianM-C/ModelingToolkitNeuralNets.jl).
+Documentation for [ModelingToolkitNeuralNets](https://github.com/SciML/ModelingToolkitNeuralNets.jl).
 
 ```@index
 ```
