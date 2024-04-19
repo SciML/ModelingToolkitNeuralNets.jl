@@ -2,16 +2,34 @@
 CurrentModule = ModelingToolkitNeuralNets
 ```
 
-# ModelingToolkitNeuralNets
+# ModelingToolkitNeuralNets.jl
 
-Documentation for [ModelingToolkitNeuralNets](https://github.com/SciML/ModelingToolkitNeuralNets.jl).
+ModelingToolkitNeuralNets.jl is a package to create neural network components defined similar to MTKStandardLibrary components, to use them for solving Universal Differential Equations. It can be plugged to any part of the equations in an ODESystem using `RealInputArray` and `RealOutputArray` components which gives a lot of flexibility to add missing physics only to the relevant parts of the model.
 
-```@index
+## Installation
+
+To install ModelingToolkitNeuralNets.jl, use the Julia package manager:
+
+```julia
+using Pkg
+Pkg.add("ModelingToolkitNeuralNets")
 ```
 
-```@autodocs
-Modules = [ModelingToolkitNeuralNets]
-```
+## Contributing
+
+  - Please refer to the
+    [SciML ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://github.com/SciML/ColPrac/blob/master/README.md)
+    for guidance on PRs, issues, and other matters relating to contributing to SciML.
+
+  - See the [SciML Style Guide](https://github.com/SciML/SciMLStyle) for common coding practices and other style decisions.
+  - There are a few community forums:
+    
+      + The #diffeq-bridged and #sciml-bridged channels in the
+        [Julia Slack](https://julialang.org/slack/)
+      + The #diffeq-bridged and #sciml-bridged channels in the
+        [Julia Zulip](https://julialang.zulipchat.com/#narrow/stream/279055-sciml-bridged)
+      + On the [Julia Discourse forums](https://discourse.julialang.org)
+      + See also [SciML Community page](https://sciml.ai/community/)
 
 ## Reproducibility
 
