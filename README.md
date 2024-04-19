@@ -7,4 +7,8 @@
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor%27s%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
-## Build UDEs with ModelingToolkit
+ModelingToolkitNeuralNets.jl is a package to create neural network blocks defined similar to MTKStandardLibrary components, to use them for solving Universal Differential Equations. It can be plugged to any part of the equations in an ODESystem using `RealInputArray` and `RealOutputArray` components which gives a lot of flexibility to add the missing physics only to a part of the model.
+
+## Tutorials and Documentation
+
+For information on using the package, [see the stable documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/stable/). Use the [in-development documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/dev/) for the version of the documentation, which contains the unreleased features.
