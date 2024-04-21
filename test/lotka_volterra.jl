@@ -44,7 +44,7 @@ end
 model = lotka_ude()
 
 chain = multi_layer_feed_forward(2, 2)
-nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
+@named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
 
 eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]

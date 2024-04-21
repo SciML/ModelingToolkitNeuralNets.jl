@@ -96,7 +96,7 @@ chain = Lux.Chain(
     Lux.Dense(10 => 10, Lux.mish, use_bias = false),
     Lux.Dense(10 => 1, use_bias = false)
 )
-nn = NeuralNetworkBlock(1, 1; chain = chain, rng = StableRNG(1111))
+@named nn = NeuralNetworkBlock(1, 1; chain = chain, rng = StableRNG(1111))
 
 eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]
