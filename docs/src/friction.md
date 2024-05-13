@@ -151,7 +151,7 @@ res_p = SciMLStructures.replace(Tunable(), prob.p, res)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 @test first.(sol_ref.u)≈first.(res_sol.u) rtol=1e-3 #hide
-@test friction.(first.(sol_ref.u))≈(Fu .- first.(res_sol(res_sol.t, Val{1}).u)) rtol=1e-1 #hide
+@test friction.(first.(sol_ref.u))≈(getindex.(res_sol[sys.nn.output.u], 1)) rtol=1e-1 #hide
 nothing #hide
 ```
 
@@ -173,7 +173,7 @@ It matches the data well! Let's also check the predictions for the friction forc
 
 ```@example friction
 scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = "ground truth friction")
-plot!(res_sol.t, Fu .- first.(res_sol(res_sol.t, Val{1}).u),
+plot!(res_sol.t, getindex.(res_sol[sys.nn.output.u], 1),
     label = "friction from neural network")
 ```
 
