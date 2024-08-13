@@ -13,7 +13,7 @@ export NeuralNetworkBlock, multi_layer_feed_forward
 include("utils.jl")
 
 """
-    NeuralNetworkBlock(n_input = 1, n_output = 1;
+    NeuralNetworkBlock(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
@@ -22,8 +22,7 @@ include("utils.jl")
 
 Create an `ODESystem` with a neural network inside.
 """
-function NeuralNetworkBlock(n_input = 1,
-        n_output = 1;
+function NeuralNetworkBlock(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
@@ -44,6 +43,12 @@ function NeuralNetworkBlock(n_input = 1,
     ude_comp = ODESystem(
         eqs, t_nounits, [], [p, T]; systems = [input, output], name)
     return ude_comp
+end
+
+# added to avoid a breaking change from moving n_input & n_output in kwargs
+# https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/32
+function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
+    NeuralNetworkBlock(; n_input, n_output, kwargs...)
 end
 
 function lazyconvert(T, x::Symbolics.Arr)
