@@ -147,7 +147,7 @@ res = solve(op, Adam(5e-3); maxiters = 10000, callback = cb)
 We now have a trained neural network! We can check whether running the simulation of the model embedded with the neural network matches the data or not.
 
 ```@example friction
-res_p = SciMLStructures.replace(Tunable(), prob.p, res)
+res_p = SciMLStructures.replace(Tunable(), prob.p, res.u)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 @test first.(sol_ref.u)≈first.(res_sol.u) rtol=1e-3 #hide
