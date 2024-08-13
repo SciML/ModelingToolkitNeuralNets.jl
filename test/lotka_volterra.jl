@@ -114,7 +114,7 @@ res = solve(op, Adam(), maxiters = 5000)#, callback = plot_cb)
 
 @test res.objective < 1
 
-res_p = SciMLStructures.replace(Tunable(), prob.p, res)
+res_p = SciMLStructures.replace(Tunable(), prob.p, res.u)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 
