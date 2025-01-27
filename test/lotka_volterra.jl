@@ -11,6 +11,9 @@ using SciMLStructures
 using SciMLStructures: Tunable, canonicalize
 using ForwardDiff
 using StableRNGs
+using DifferentiationInterface
+using SciMLSensitivity
+using Zygote: Zygote
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
@@ -86,14 +89,22 @@ function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
     end
 end
 
-of = OptimizationFunction{true}(loss, AutoForwardDiff())
+of = OptimizationFunction{true}(loss, AutoZygote())
 
 ps = (prob, sol_ref, get_vars, get_refs, set_x);
 
 @test_call target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 @test_opt target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 
-@test all(.!isnan.(ForwardDiff.gradient(Base.Fix2(of, ps), x0)))
+∇l1 = DifferentiationInterface.gradient(Base.Fix2(of, ps), AutoForwardDiff(), x0)
+∇l2 = DifferentiationInterface.gradient(Base.Fix2(of, ps), AutoFiniteDiff(), x0)
+∇l3 = DifferentiationInterface.gradient(Base.Fix2(of, ps), AutoZygote(), x0)
+
+@test all(.!isnan.(∇l1))
+@test !iszero(∇l1)
+
+@test ∇l1≈∇l2 rtol=1e-2
+@test ∇l1≈∇l3 rtol=1e-5
 
 op = OptimizationProblem(of, x0, ps)
 
