@@ -11,7 +11,6 @@ using ComponentArrays: ComponentArray
 export NeuralNetworkBlock, multi_layer_feed_forward
 
 include("utils.jl")
-
 """
     NeuralNetworkBlock(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
