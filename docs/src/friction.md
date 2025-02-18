@@ -110,8 +110,8 @@ sys = structural_simplify(ude_sys)
 We now setup the loss function and the optimization loop.
 
 ```@example friction
-function loss(x, (prob, sol_ref, get_vars, get_refs))
-    new_p = SciMLStructures.replace(Tunable(), prob.p, x)
+function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
+    new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
     new_sol = solve(new_prob, Rodas4(), saveat = ts, abstol = 1e-8, reltol = 1e-8)
@@ -131,14 +131,15 @@ of = OptimizationFunction{true}(loss, AutoForwardDiff())
 prob = ODEProblem(sys, [], (0, 0.1), [])
 get_vars = getu(sys, [sys.friction.y])
 get_refs = getu(model_true, [model_true.y])
-x0 = reduce(vcat, getindex.((default_values(sys),), tunable_parameters(sys)))
+set_x = setp_oop(sys, sys.nn.p)
+x0 = default_values(sys)[sys.nn.p]
 
 cb = (opt_state, loss) -> begin
     @info "step $(opt_state.iter), loss: $loss"
     return false
 end
 
-op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs))
+op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs, set_x))
 res = solve(op, Adam(5e-3); maxiters = 10000, callback = cb)
 ```
 
@@ -147,7 +148,7 @@ res = solve(op, Adam(5e-3); maxiters = 10000, callback = cb)
 We now have a trained neural network! We can check whether running the simulation of the model embedded with the neural network matches the data or not.
 
 ```@example friction
-res_p = SciMLStructures.replace(Tunable(), prob.p, res.u)
+res_p = set_x(prob, res.u)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 @test first.(sol_ref.u)≈first.(res_sol.u) rtol=1e-3 #hide
