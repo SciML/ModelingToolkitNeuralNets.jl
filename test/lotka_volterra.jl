@@ -8,7 +8,7 @@ using SymbolicIndexingInterface
 using Optimization
 using OptimizationOptimisers: Adam
 using SciMLStructures
-using SciMLStructures: Tunable
+using SciMLStructures: Tunable, canonicalize
 using ForwardDiff
 using StableRNGs
 
@@ -51,7 +51,7 @@ eqs = [connect(model.nn_in, nn.output)
 
 ude_sys = complete(ODESystem(
     eqs, ModelingToolkit.t_nounits, systems = [model, nn],
-    name = :ude_sys, defaults = [nn.input.u => [0.0, 0.0]]))
+    name = :ude_sys))
 
 sys = structural_simplify(ude_sys)
 
@@ -61,13 +61,14 @@ model_true = structural_simplify(lotka_true())
 prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 1.0), [])
 sol_ref = solve(prob_true, Rodas4())
 
-x0 = reduce(vcat, getindex.((default_values(sys),), tunable_parameters(sys)))
+x0 = default_values(sys)[nn.p]
 
 get_vars = getu(sys, [sys.lotka.x, sys.lotka.y])
 get_refs = getu(model_true, [model_true.x, model_true.y])
+set_x = setp_oop(sys, nn.p)
 
-function loss(x, (prob, sol_ref, get_vars, get_refs))
-    new_p = SciMLStructures.replace(Tunable(), prob.p, x)
+function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
+    new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
     new_sol = solve(new_prob, Rodas4(), saveat = ts)
@@ -87,14 +88,14 @@ end
 
 of = OptimizationFunction{true}(loss, AutoForwardDiff())
 
-ps = (prob, sol_ref, get_vars, get_refs);
+ps = (prob, sol_ref, get_vars, get_refs, set_x);
 
 @test_call target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 @test_opt target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 
 @test all(.!isnan.(ForwardDiff.gradient(Base.Fix2(of, ps), x0)))
 
-op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs))
+op = OptimizationProblem(of, x0, ps)
 
 # using Plots
 
@@ -114,7 +115,7 @@ res = solve(op, Adam(), maxiters = 5000)#, callback = plot_cb)
 
 @test res.objective < 1
 
-res_p = SciMLStructures.replace(Tunable(), prob.p, res.u)
+res_p = set_x(prob, res.u)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 
