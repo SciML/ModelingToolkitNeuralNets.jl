@@ -62,7 +62,7 @@ prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [], (0, 1.0), [])
 
 model_true = structural_simplify(lotka_true())
 prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 1.0), [])
-sol_ref = solve(prob_true, Rodas4())
+sol_ref = solve(prob_true, Rodas5P(), abstol = 1e-8, reltol = 1e-8)
 
 x0 = default_values(sys)[nn.p]
 
@@ -74,7 +74,7 @@ function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
     new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
-    new_sol = solve(new_prob, Rodas4(), saveat = ts)
+    new_sol = solve(new_prob, Rodas5P(), abstol = 1e-8, reltol = 1e-8, saveat = ts)
 
     loss = zero(eltype(x))
 
