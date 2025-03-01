@@ -1,7 +1,7 @@
 name = "ModelingToolkitNeuralNets"
 uuid = "f162e290-f571-43a6-83d9-22ecc16da15f"
 authors = ["Sebastian Micluța-Câmpeanu <sebastian.mc95@proton.me> and contributors"]
-version = "1.6.0"
+version = "1.6.1"
 
 [deps]
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
