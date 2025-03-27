@@ -32,16 +32,17 @@ function NeuralNetworkBlock(; n_input = 1, n_output = 1,
 
     @parameters p[1:length(ca)] = Vector(ca)
     @parameters T::typeof(typeof(ca))=typeof(ca) [tunable = false]
+    @parameters lux_model::typeof(chain) = chain
 
     @named input = RealInputArray(nin = n_input)
     @named output = RealOutputArray(nout = n_output)
 
-    out = stateless_apply(chain, input.u, lazyconvert(T, p))
+    out = stateless_apply(lux_model, input.u, lazyconvert(T, p))
 
     eqs = [output.u ~ out]
 
     ude_comp = ODESystem(
-        eqs, t_nounits, [], [p, T]; systems = [input, output], name)
+        eqs, t_nounits, [], [lux_model, p, T]; systems = [input, output], name)
     return ude_comp
 end
 
