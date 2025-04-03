@@ -62,6 +62,8 @@ end
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
+        nn_name =  :NN,
+        nn_p_name = :p,
         eltype = Float64)
 
 Create symbolic parameter for a neural network and one for its parameters.
@@ -73,6 +75,7 @@ NN, p = SymbolicNeuralNetwork(; chain, n_input=2, n_output=2, rng = StableRNG(42
 ```
 
 The NN and p are symbolic parameters that can be used later as part of a system.
+To change the name of the symbolic variables, use `nn_name` and `nn_p_name`.
 To get the predictions of the neural network, use
 
 ```
@@ -96,14 +99,16 @@ function SymbolicNeuralNetwork(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
+        nn_name = :NN,
+        nn_p_name = :p,
         eltype = Float64)
     ca = ComponentArray{eltype}(init_params)
     wrapper = StatelessApplyWrapper(chain, typeof(ca))
 
-    @parameters p[1:length(ca)] = Vector(ca)
-    @parameters (NN::typeof(wrapper))(..)[1:n_output] = wrapper
+    p = @parameters $(nn_p_name)[1:length(ca)] = Vector(ca)
+    NN = @parameters ($(nn_name)::typeof(wrapper))(..)[1:n_output] = wrapper
 
-    return NN, p
+    return only(NN), only(p)
 end
 
 struct StatelessApplyWrapper{NN}
