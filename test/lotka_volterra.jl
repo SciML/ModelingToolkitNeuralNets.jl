@@ -51,12 +51,12 @@ chain = multi_layer_feed_forward(2, 2)
 
 eqs = [connect(model.nn_in, nn.output)
        connect(model.nn_out, nn.input)]
-
+eqs = [model.nn_in.u ~ nn.output.u, model.nn_out.u ~ nn.input.u]
 ude_sys = complete(ODESystem(
     eqs, ModelingToolkit.t_nounits, systems = [model, nn],
     name = :ude_sys))
 
-sys = structural_simplify(ude_sys)
+sys = structural_simplify(ude_sys, allow_symbolic = true)
 
 prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [], (0, 1.0), [])
 
@@ -103,7 +103,7 @@ ps = (prob, sol_ref, get_vars, get_refs, set_x);
 @test all(.!isnan.(∇l1))
 @test !iszero(∇l1)
 
-@test ∇l1≈∇l2 rtol=1e-2
+@test ∇l1≈∇l2 rtol=1e-3
 @test ∇l1≈∇l3 rtol=1e-5
 
 op = OptimizationProblem(of, x0, ps)
@@ -135,3 +135,32 @@ res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
 # plot!(res_sol, idxs = [sys.lotka.x, sys.lotka.y])
 
 @test SciMLBase.successful_retcode(res_sol)
+
+function lotka_ude2()
+    @variables t x(t)=3.1 y(t)=1.5 pred(t)[1:2]
+    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
+    chain = multi_layer_feed_forward(2, 2)
+    NN, p = SymbolicNeuralNetwork(; chain, n_input = 2, n_output = 2, rng = StableRNG(42))
+    Dt = ModelingToolkit.D_nounits
+
+    eqs = [pred ~ NN([x, y], p)
+           Dt(x) ~ α * x + pred[1]
+           Dt(y) ~ -δ * y + pred[2]]
+    return ODESystem(eqs, ModelingToolkit.t_nounits, name = :lotka)
+end
+
+sys2 = structural_simplify(lotka_ude2())
+
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [], (0, 1.0), [])
+
+sol = solve(prob, Rodas5P(), abstol = 1e-10, reltol = 1e-8)
+
+@test SciMLBase.successful_retcode(sol)
+
+set_x2 = setp_oop(sys2, sys2.p)
+ps2 = (prob, sol_ref, get_vars, get_refs, set_x2);
+op2 = OptimizationProblem(of, x0, ps2)
+
+res2 = solve(op2, Adam(), maxiters = 10000)
+
+@test res.u ≈ res2.u
