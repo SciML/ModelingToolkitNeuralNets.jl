@@ -1,7 +1,7 @@
 module ModelingToolkitNeuralNets
 
 using ModelingToolkit: @parameters, @named, ODESystem, t_nounits
-using IntervalSets: (..)
+using IntervalSets: var".."
 using ModelingToolkitStandardLibrary.Blocks: RealInputArray, RealOutputArray
 using Symbolics: Symbolics, @register_array_symbolic, @wrapped
 using LuxCore: stateless_apply
