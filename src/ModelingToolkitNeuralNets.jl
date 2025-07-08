@@ -42,8 +42,8 @@ function NeuralNetworkBlock(; n_input = 1, n_output = 1,
 
     eqs = [output.u ~ out]
 
-    ude_comp = ODESystem(
-        eqs, t_nounits, [], [lux_model, p, T]; systems = [input, output], name)
+    ude_comp = System(
+        eqs, t_nounits, [lux_model, p, T]; systems = [input, output], name)
     return ude_comp
 end
 
