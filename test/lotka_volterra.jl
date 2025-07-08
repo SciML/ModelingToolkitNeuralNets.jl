@@ -3,7 +3,7 @@ using JET
 using ModelingToolkitNeuralNets
 using ModelingToolkit
 using ModelingToolkitStandardLibrary.Blocks
-using OrdinaryDiffEq
+using OrdinaryDiffEqVerner
 using SymbolicIndexingInterface
 using Optimization
 using OptimizationOptimisers: Adam
@@ -14,22 +14,24 @@ using StableRNGs
 using DifferentiationInterface
 using SciMLSensitivity
 using Zygote: Zygote
+using Statistics
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
     @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
     Dt = ModelingToolkit.D_nounits
-    @named nn_in = RealInputArray(nin = 2)
-    @named nn_out = RealOutputArray(nout = 2)
+
+    chain = multi_layer_feed_forward(2, 2)
+    @named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
 
     eqs = [
-        Dt(x) ~ α * x + nn_in.u[1],
-        Dt(y) ~ -δ * y + nn_in.u[2],
-        nn_out.u[1] ~ x,
-        nn_out.u[2] ~ y
+        Dt(x) ~ α * x + nn.outputs[1],
+        Dt(y) ~ -δ * y + nn.outputs[2],
+        nn.inputs[1] ~ x,
+        nn.inputs[2] ~ y
     ]
-    return ODESystem(
-        eqs, ModelingToolkit.t_nounits, name = :lotka, systems = [nn_in, nn_out])
+    return System(
+        eqs, ModelingToolkit.t_nounits, name = :lotka, systems = [nn])
 end
 
 function lotka_true()
@@ -41,49 +43,33 @@ function lotka_true()
         Dt(x) ~ α * x - β * x * y,
         Dt(y) ~ -δ * y + δ * x * y
     ]
-    return ODESystem(eqs, ModelingToolkit.t_nounits, name = :lotka_true)
+    return System(eqs, ModelingToolkit.t_nounits, name = :lotka_true)
 end
 
-model = lotka_ude()
+ude_sys = lotka_ude()
 
-chain = multi_layer_feed_forward(2, 2)
-@named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
+sys = mtkcompile(ude_sys, allow_symbolic = true)
 
-eqs = [connect(model.nn_in, nn.output)
-       connect(model.nn_out, nn.input)]
-eqs = [model.nn_in.u ~ nn.output.u, model.nn_out.u ~ nn.input.u]
-ude_sys = complete(ODESystem(
-    eqs, ModelingToolkit.t_nounits, systems = [model, nn],
-    name = :ude_sys))
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [], (0, 1.0))
 
-sys = structural_simplify(ude_sys, allow_symbolic = true)
+model_true = mtkcompile(lotka_true())
+prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 1.0))
+sol_ref = solve(prob_true, Vern9(), abstol = 1e-10, reltol = 1e-8)
 
-prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [], (0, 1.0), [])
+x0 = default_values(sys)[sys.nn.p]
 
-model_true = structural_simplify(lotka_true())
-prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 1.0), [])
-sol_ref = solve(prob_true, Rodas5P(), abstol = 1e-10, reltol = 1e-8)
-
-x0 = default_values(sys)[nn.p]
-
-get_vars = getu(sys, [sys.lotka.x, sys.lotka.y])
+get_vars = getu(sys, [sys.x, sys.y])
 get_refs = getu(model_true, [model_true.x, model_true.y])
-set_x = setp_oop(sys, nn.p)
+set_x = setp_oop(sys, sys.nn.p)
 
 function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
     new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
-    new_sol = solve(new_prob, Rodas5P(), abstol = 1e-10, reltol = 1e-8, saveat = ts)
-
-    loss = zero(eltype(x))
-
-    for i in eachindex(new_sol.u)
-        loss += sum(abs2.(get_vars(new_sol, i) .- get_refs(sol_ref, i)))
-    end
+    new_sol = solve(new_prob, Vern9(), abstol = 1e-10, reltol = 1e-8, saveat = ts)
 
     if SciMLBase.successful_retcode(new_sol)
-        loss
+        mean(abs2.(reduce(hcat, get_vars(new_sol)) .- reduce(hcat, get_refs(sol_ref))))
     else
         Inf
     end
@@ -103,8 +89,8 @@ ps = (prob, sol_ref, get_vars, get_refs, set_x);
 @test all(.!isnan.(∇l1))
 @test !iszero(∇l1)
 
-@test ∇l1≈∇l2 rtol=1e-3
-@test ∇l1≈∇l3 rtol=1e-5
+@test ∇l1≈∇l2 rtol=1e-5
+@test ∇l1 ≈ ∇l3
 
 op = OptimizationProblem(of, x0, ps)
 
@@ -124,15 +110,16 @@ op = OptimizationProblem(of, x0, ps)
 
 res = solve(op, Adam(), maxiters = 10000)#, callback = plot_cb)
 
+display(res.stats)
 @test res.objective < 1
 
 res_p = set_x(prob, res.u)
 res_prob = remake(prob, p = res_p)
-res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
+res_sol = solve(res_prob, Vern9())
 
 # using Plots
 # plot(sol_ref, idxs = [model_true.x, model_true.y])
-# plot!(res_sol, idxs = [sys.lotka.x, sys.lotka.y])
+# plot!(res_sol, idxs = [sys.x, sys.y])
 
 @test SciMLBase.successful_retcode(res_sol)
 
@@ -146,14 +133,14 @@ function lotka_ude2()
     eqs = [pred ~ NN([x, y], p)
            Dt(x) ~ α * x + pred[1]
            Dt(y) ~ -δ * y + pred[2]]
-    return ODESystem(eqs, ModelingToolkit.t_nounits, name = :lotka)
+    return System(eqs, ModelingToolkit.t_nounits, name = :lotka)
 end
 
-sys2 = structural_simplify(lotka_ude2())
+sys2 = mtkcompile(lotka_ude2())
 
-prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [], (0, 1.0), [])
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [], (0, 1.0))
 
-sol = solve(prob, Rodas5P(), abstol = 1e-10, reltol = 1e-8)
+sol = solve(prob, Vern9(), abstol = 1e-10, reltol = 1e-8)
 
 @test SciMLBase.successful_retcode(sol)
 
