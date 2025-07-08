@@ -1,10 +1,9 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkit: @parameters, @named, ODESystem, t_nounits
+using ModelingToolkit: @parameters, @named, @variables, System, t_nounits
 using IntervalSets: var".."
-using ModelingToolkitStandardLibrary.Blocks: RealInputArray, RealOutputArray
 using Symbolics: Symbolics, @register_array_symbolic, @wrapped
-using LuxCore: stateless_apply
+using LuxCore: stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
 using ComponentArrays: ComponentArray
@@ -21,7 +20,7 @@ include("utils.jl")
         eltype = Float64,
         name)
 
-Create an `ODESystem` with a neural network inside.
+Create a component neural network as a `System`.
 """
 function NeuralNetworkBlock(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
@@ -31,19 +30,21 @@ function NeuralNetworkBlock(; n_input = 1, n_output = 1,
         name)
     ca = ComponentArray{eltype}(init_params)
 
-    @parameters p[1:length(ca)] = Vector(ca)
+    @parameters p[1:length(ca)]=Vector(ca) [tunable = true]
     @parameters T::typeof(typeof(ca))=typeof(ca) [tunable = false]
-    @parameters lux_model::typeof(chain) = chain
+    @parameters lux_model::typeof(chain)=chain [tunable = false]
 
-    @named input = RealInputArray(nin = n_input)
-    @named output = RealOutputArray(nout = n_output)
+    @variables inputs(t_nounits)[1:n_input] [input = true]
+    @variables outputs(t_nounits)[1:n_output] [output = true]
 
-    out = stateless_apply(lux_model, input.u, lazyconvert(T, p))
+    expected_outsz = only(outputsize(chain, inputs, rng))
+    msg = "The outputsize of the given Lux network ($expected_outsz) does not match `n_output = $n_output`"
+    @assert n_output==expected_outsz msg
 
-    eqs = [output.u ~ out]
+    eqs = [outputs ~ stateless_apply(lux_model, inputs, lazyconvert(T, p))]
 
-    ude_comp = ODESystem(
-        eqs, t_nounits, [], [lux_model, p, T]; systems = [input, output], name)
+    ude_comp = System(
+        eqs, t_nounits, [inputs, outputs], [lux_model, p, T]; name)
     return ude_comp
 end
 
