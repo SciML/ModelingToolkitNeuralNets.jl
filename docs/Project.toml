@@ -25,3 +25,6 @@ Plots = "1"
 SciMLStructures = "1.1.0"
 StableRNGs = "1"
 SymbolicIndexingInterface = "0.3.15"
+
+[sources]
+ModelingToolkitNeuralNets = { path = ".." }
