@@ -12,3 +12,11 @@ ModelingToolkitNeuralNets.jl is a package to create neural network blocks define
 ## Tutorials and Documentation
 
 For information on using the package, [see the stable documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/stable/). Use the [in-development documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/dev/) for the version of the documentation, which contains the unreleased features.
+
+## Breaking changes in v2
+
+The `NeuralNetworkBlock` no longer uses `RealInputArray` & `RealOutputArray`,
+the ports are now `inputs` and `outputs` and they are normal vector variables.
+This simplifies the usage a bit and removes the need for the ModelingToolkitStandardLibrary dependency.
+
+This version also moves to ModelingToolkit@v10.
