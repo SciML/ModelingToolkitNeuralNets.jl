@@ -18,6 +18,7 @@ using OptimizationOptimisers: Adam
 using SciMLStructures
 using SciMLStructures: Tunable
 using SymbolicIndexingInterface
+using Statistics
 using StableRNGs
 using Lux
 using Plots
