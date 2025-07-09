@@ -49,16 +49,16 @@ function friction_true()
     eqs = [
         Dt(y) ~ Fu - friction(y)
     ]
-    return ODESystem(eqs, t, name = :friction_true)
+    return System(eqs, t, name = :friction_true)
 end
 ```
 
 Now that we have defined the model, we will simulate it from 0 to 0.1 seconds.
 
 ```@example friction
-model_true = structural_simplify(friction_true())
-prob_true = ODEProblem(model_true, [], (0, 0.1), [])
-sol_ref = solve(prob_true, Rodas4(); saveat = 0.001)
+model_true = mtkcompile(friction_true())
+prob_true = ODEProblem(model_true, [], (0, 0.1))
+sol_ref = solve(prob_true, Vern7(); saveat = 0.001)
 ```
 
 Let's plot it.
@@ -81,28 +81,23 @@ Now, we will try to learn the same friction model using a neural network. We wil
 function friction_ude(Fu)
     @variables y(t) = 0.0
     @constants Fu = Fu
-    @named nn_in = RealInputArray(nin = 1)
-    @named nn_out = RealOutputArray(nout = 1)
-    eqs = [Dt(y) ~ Fu - nn_in.u[1]
-           y ~ nn_out.u[1]]
-    return ODESystem(eqs, t, name = :friction, systems = [nn_in, nn_out])
+
+    chain = Lux.Chain(
+        Lux.Dense(1 => 10, Lux.mish, use_bias = false),
+        Lux.Dense(10 => 10, Lux.mish, use_bias = false),
+        Lux.Dense(10 => 1, use_bias = false)
+    )
+    @named nn = NeuralNetworkBlock(1, 1; chain = chain, rng = StableRNG(1111))
+
+    eqs = [Dt(y) ~ Fu - nn.outputs[1]
+           y ~ nn.inputs[1]]
+    return System(eqs, t, name = :friction, systems = [nn])
 end
 
 Fu = 120.0
-model = friction_ude(Fu)
 
-chain = Lux.Chain(
-    Lux.Dense(1 => 10, Lux.mish, use_bias = false),
-    Lux.Dense(10 => 10, Lux.mish, use_bias = false),
-    Lux.Dense(10 => 1, use_bias = false)
-)
-@named nn = NeuralNetworkBlock(1, 1; chain = chain, rng = StableRNG(1111))
-
-eqs = [connect(model.nn_in, nn.output)
-       connect(model.nn_out, nn.input)]
-
-ude_sys = complete(ODESystem(eqs, t, systems = [model, nn], name = :ude_sys))
-sys = structural_simplify(ude_sys)
+ude_sys = friction_ude(Fu)
+sys = mtkcompile(ude_sys)
 ```
 
 ## Optimization Setup
@@ -114,22 +109,19 @@ function loss(x, (prob, sol_ref, get_vars, get_refs, set_x))
     new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = eltype(x).(prob.u0))
     ts = sol_ref.t
-    new_sol = solve(new_prob, Rodas4(), saveat = ts, abstol = 1e-8, reltol = 1e-8)
-    loss = zero(eltype(x))
-    for i in eachindex(new_sol.u)
-        loss += sum(abs2.(get_vars(new_sol, i) .- get_refs(sol_ref, i)))
-    end
+    new_sol = solve(new_prob, Vern7(), saveat = ts, abstol = 1e-8, reltol = 1e-8)
+
     if SciMLBase.successful_retcode(new_sol)
-        loss
+        mean(abs2.(reduce(hcat, get_vars(new_sol)) .- reduce(hcat, get_refs(sol_ref))))
     else
         Inf
     end
 end
 
-of = OptimizationFunction{true}(loss, AutoForwardDiff())
+of = OptimizationFunction(loss, AutoForwardDiff())
 
-prob = ODEProblem(sys, [], (0, 0.1), [])
-get_vars = getu(sys, [sys.friction.y])
+prob = ODEProblem(sys, [], (0, 0.1))
+get_vars = getu(sys, [sys.y])
 get_refs = getu(model_true, [model_true.y])
 set_x = setp_oop(sys, sys.nn.p)
 x0 = default_values(sys)[sys.nn.p]
@@ -150,31 +142,31 @@ We now have a trained neural network! We can check whether running the simulatio
 ```@example friction
 res_p = set_x(prob, res.u)
 res_prob = remake(prob, p = res_p)
-res_sol = solve(res_prob, Rodas4(), saveat = sol_ref.t)
+res_sol = solve(res_prob, Vern7(), saveat = sol_ref.t)
 @test first.(sol_ref.u)≈first.(res_sol.u) rtol=1e-3 #hide
-@test friction.(first.(sol_ref.u))≈(getindex.(res_sol[sys.nn.output.u], 1)) rtol=1e-1 #hide
+@test friction.(first.(sol_ref.u))≈(getindex.(res_sol[sys.nn.outputs], 1)) rtol=1e-1 #hide
 nothing #hide
 ```
 
 Also, it would be interesting to check the simulation before the training to get an idea of the starting point of the network.
 
 ```@example friction
-initial_sol = solve(prob, Rodas4(), saveat = sol_ref.t)
+initial_sol = solve(prob, Vern7(), saveat = sol_ref.t)
 ```
 
 Now we plot it.
 
 ```@example friction
 scatter(sol_ref, idxs = [model_true.y], label = "ground truth velocity")
-plot!(res_sol, idxs = [sys.friction.y], label = "velocity after training")
-plot!(initial_sol, idxs = [sys.friction.y], label = "velocity before training")
+plot!(res_sol, idxs = [sys.y], label = "velocity after training")
+plot!(initial_sol, idxs = [sys.y], label = "velocity before training")
 ```
 
 It matches the data well! Let's also check the predictions for the friction force and whether the network learnt the friction model or not.
 
 ```@example friction
 scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = "ground truth friction")
-plot!(res_sol.t, getindex.(res_sol[sys.nn.output.u], 1),
+plot!(res_sol.t, getindex.(res_sol[sys.nn.outputs], 1),
     label = "friction from neural network")
 ```
 
