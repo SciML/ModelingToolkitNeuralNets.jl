@@ -1,6 +1,6 @@
 using ModelingToolkit, Symbolics
 using ModelingToolkit: t_nounits as t, D_nounits as D
-using OrdinaryDiffEq
+using OrdinaryDiffEqVerner
 using ModelingToolkitNeuralNets
 using ModelingToolkitStandardLibrary.Blocks
 using Lux
@@ -28,14 +28,14 @@ end
         nn = NeuralNetworkBlock(n_input = 1, n_output = 1)
     end
     @equations begin
-        connect(friction_ude.nn_in, nn.output)
-        connect(friction_ude.nn_out, nn.input)
+        connect(friction_ude.nn_in.u, nn.outputs)
+        connect(friction_ude.nn_out.u, nn.inputs)
     end
 end
 
-@mtkbuild sys = TestFriction_UDE()
+@mtkcompile sys = TestFriction_UDE()
 
-prob = ODEProblem(sys, [], (0, 1.0), [])
-sol = solve(prob, Rodas4())
+prob = ODEProblem(sys, [], (0, 1.0))
+sol = solve(prob, Vern9())
 
 @test SciMLBase.successful_retcode(sol)

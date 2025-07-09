@@ -2,4 +2,5 @@
 
 ```@docs
 NeuralNetworkBlock
+SymbolicNeuralNetwork
 ```
