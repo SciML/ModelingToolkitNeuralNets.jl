@@ -12,7 +12,7 @@ using ModelingToolkit
 import ModelingToolkit.t_nounits as t
 import ModelingToolkit.D_nounits as Dt
 using ModelingToolkitStandardLibrary.Blocks
-using OrdinaryDiffEq
+using OrdinaryDiffEqVerner
 using Optimization
 using OptimizationOptimisers: Adam
 using SciMLStructures
