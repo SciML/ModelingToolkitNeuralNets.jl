@@ -20,9 +20,8 @@ makedocs(;
     linkcheck = true,
     pages = [
         "Home" => "index.md",
-        "Tutorials" => [
-            "Friction Model" => "friction.md"
-        ],
+        "Tutorials" => ["NeuralNetworkBlock" => "nnblock.md"
+                        "Friction Model" => "friction.md"],
         "API" => "api.md"
     ]
 )

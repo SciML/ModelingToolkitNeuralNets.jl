@@ -4,15 +4,22 @@ CurrentModule = ModelingToolkitNeuralNets
 
 # ModelingToolkitNeuralNets.jl
 
-ModelingToolkitNeuralNets.jl is a package to create neural network components defined similar to MTKStandardLibrary components, to use them for solving Universal Differential Equations. It can be plugged to any part of the equations in an ODESystem using `RealInputArray` and `RealOutputArray` components which gives a lot of flexibility to add missing physics only to the relevant parts of the model.
+[`ModelingToolkitNeuralNets`](https://github.com/SciML/ModelingToolkitNeuralNets.jl) is a package that allows one to embed neural networks
+inside [`ModelingToolkit`](https://github.com/SciML/ModelingToolkit.jl) systems in order to formulate Universal Differential Equations.
+The neural network is symbolically represented either as a block component or a callable parameter, so it can be added to any part of the equations in an `System` which gives a lot of flexibility for model discovery, such that we make changes only to the relevant parts of the model in order to
+discover missing physics.
 
 ## Installation
 
-To install ModelingToolkitNeuralNets.jl, use the Julia package manager:
+To install [`ModelingToolkitNeuralNets`](https://github.com/SciML/ModelingToolkitNeuralNets.jl), use the Julia package manager:
 
 ```julia
 using Pkg
 Pkg.add("ModelingToolkitNeuralNets")
+```
+or
+```julia-repl
+julia> ]add ModelingToolkitNeuralNets
 ```
 
 ## Contributing
