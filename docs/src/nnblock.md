@@ -274,10 +274,6 @@ As we can see from the final plot, the neural network fits very well and not onl
 predictions of the system match the original system. Let us also compare against the predictions of the incomplete system:
 
 ```@example potplate
-(new_u0, new_p) = oop_update(prob3, res2.u)
-new_prob1 = remake(prob3, u0=new_u0, p=new_p)
-new_sol1 = solve(new_prob1, Tsit5(), abstol=1e-6, reltol=1e-6)
-
 plot(sol1, label=["original sys: pot T" "original sys: plate T"], lw=3)
 plot!(sol3; idxs=[sys3.pot.T], label="untrained UDE", lw=2.5)
 plot!(sol2; idxs=[sys2.pot.T], label="incomplete sys: pot T", lw=2.5)
