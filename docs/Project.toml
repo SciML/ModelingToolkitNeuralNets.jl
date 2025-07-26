@@ -25,6 +25,7 @@ path = ".."
 
 [compat]
 Documenter = "1.3"
+LineSearches = "7"
 Lux = "1"
 ModelingToolkit = "10"
 ModelingToolkitNeuralNets = "2"
