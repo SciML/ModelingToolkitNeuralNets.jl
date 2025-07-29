@@ -8,8 +8,8 @@
 This tutorial will introduce the [`NeuralNetworkBlock`](@ref). This representation is useful in the context of hierarchical acausal component-based model.
 
 For such models we have a component representation that is converted to a a differential-algebraic equation (DAE) system, where the algebraic equations are given by the constraints and equalities between different component variables.
-The process of going from the component representation to the full DAE system at the end is reffered to as [structural simplification](https://docs.sciml.ai/ModelingToolkit/stable/API/model_building/#System-simplification).
-In order to formulate Universal Differential Equations (UDEs) in this context, we could operate eiter operate before the structural simplification step or after that, on the
+The process of going from the component representation to the full DAE system at the end is referred to as [structural simplification](https://docs.sciml.ai/ModelingToolkit/stable/API/model_building/#System-simplification).
+In order to formulate Universal Differential Equations (UDEs) in this context, we could operate either operate before the structural simplification step or after that, on the
 resulting DAE system. We call these the component UDE formulation and the system UDE formulation.
 
 The advantage of the component UDE formulation is that it allows us to represent the model
@@ -181,7 +181,7 @@ end
 @named model = NeuralPot()
 sys3 = mtkcompile(model)
 
-# Let's check that we can succesfully simulate the system in the
+# Let's check that we can successfully simulate the system in the
 # initial state
 prob3 = ODEProblem(sys3, Pair[], (0, 100.0))
 sol3 = solve(prob3, Tsit5(), abstol=1e-6, reltol=1e-6)
@@ -192,8 +192,8 @@ Now that we have the system with the embedded neural network, we can start train
 The training will be formulated as an optimization problem where we will minimize the mean absolute squared distance
 between the predictions of the new system and the data obtained from the original system.
 In order to gain some insight into the training process we will also add a callback that will plot various quantities
-in the system versus their equivalents in the original system. In a more realistic scenarion we would not have access
-to the original system, but we could still monitor how well we fit the traning data and the system predictions.
+in the system versus their equivalents in the original system. In a more realistic scenario we would not have access
+to the original system, but we could still monitor how well we fit the training data and the system predictions.
 
 ```@example potplate
 using SymbolicIndexingInterface
