@@ -3,8 +3,8 @@
         depth::Int = 1, activation = tanh, use_bias = true, initial_scaling_factor = 1e-8)
 
 Create a Lux.jl `Chain` for use in [`NeuralNetworkBlock`](@ref)s. The weights of the last layer
-are multipled by the `initial_scaling_factor` in order to make the initial contribution
-of the network small and thus help with acheiving a stable starting position for the training.
+are multiplied by the `initial_scaling_factor` in order to make the initial contribution
+of the network small and thus help with achieving a stable starting position for the training.
 """
 function multi_layer_feed_forward(; n_input, n_output, width::Int = 4,
         depth::Int = 1, activation = tanh, use_bias = true, initial_scaling_factor = 1e-8)
