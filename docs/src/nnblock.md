@@ -2,8 +2,8 @@
 
 [`ModelingToolkitNeuralNets`](https://github.com/SciML/ModelingToolkitNeuralNets.jl) provides 2 main interfaces for representing neural networks symbolically:
 
-* The [`NeuralNetworkBlock`](@ref), which represents the neural network as a block component
-* The [`SymbolicNeuralNetwork`](@ref), which represents the neural network via callable parameters
+  - The [`NeuralNetworkBlock`](@ref), which represents the neural network as a block component
+  - The [`SymbolicNeuralNetwork`](@ref), which represents the neural network via callable parameters
 
 This tutorial will introduce the [`NeuralNetworkBlock`](@ref). This representation is useful in the context of hierarchical acausal component-based model.
 
@@ -46,13 +46,13 @@ input_f(t) = (1+sin(0.005 * t^2))/2
         C2 = 15
     end
     @components begin
-        input = Blocks.TimeVaryingFunction(f=input_f)
-        source = PrescribedHeatFlow(T_ref=373.15)
-        plate = HeatCapacitor(C=C1, T=273.15)
-        pot = HeatCapacitor(C=C2, T=273.15)
-        conduction = ThermalConductor(G=1)
-        air = ThermalConductor(G=0.1)
-        env = FixedTemperature(T=293.15)
+        input = Blocks.TimeVaryingFunction(f = input_f)
+        source = PrescribedHeatFlow(T_ref = 373.15)
+        plate = HeatCapacitor(C = C1, T = 273.15)
+        pot = HeatCapacitor(C = C2, T = 273.15)
+        conduction = ThermalConductor(G = 1)
+        air = ThermalConductor(G = 0.1)
+        env = FixedTemperature(T = 293.15)
         Tsensor = TemperatureSensor()
     end
     @equations begin
@@ -70,11 +70,11 @@ end
         C2 = 15
     end
     @components begin
-        input = Blocks.TimeVaryingFunction(f=input_f)
-        source = PrescribedHeatFlow(T_ref=373.15)
-        pot = HeatCapacitor(C=C2, T=273.15)
-        air = ThermalConductor(G=0.1)
-        env = FixedTemperature(T=293.15)
+        input = Blocks.TimeVaryingFunction(f = input_f)
+        source = PrescribedHeatFlow(T_ref = 373.15)
+        pot = HeatCapacitor(C = C2, T = 273.15)
+        air = ThermalConductor(G = 0.1)
+        env = FixedTemperature(T = 293.15)
         Tsensor = TemperatureSensor()
     end
     @equations begin
@@ -91,11 +91,11 @@ end
 ## solve and plot the temperature of the pot in the 2 systems
 
 prob1 = ODEProblem(sys1, Pair[], (0, 100.0))
-sol1 = solve(prob1, Tsit5(), reltol=1e-6)
+sol1 = solve(prob1, Tsit5(), reltol = 1e-6)
 prob2 = ODEProblem(sys2, Pair[], (0, 100.0))
-sol2 = solve(prob2, Tsit5(), reltol=1e-6)
-plot(sol1, idxs=sys1.pot.T, label="pot.T in original system")
-plot!(sol2, idxs=sys1.pot.T, label="pot.T in simplified system")
+sol2 = solve(prob2, Tsit5(), reltol = 1e-6)
+plot(sol1, idxs = sys1.pot.T, label = "pot.T in original system")
+plot!(sol2, idxs = sys1.pot.T, label = "pot.T in simplified system")
 ```
 
 If we take a closer look at the 2 models, the original system has 2 unknowns,
@@ -105,6 +105,7 @@ unknowns(sys1)
 ```
 
 while the simplified system only has 1 unknown
+
 ```@example potplate
 unknowns(sys2)
 ```
@@ -127,12 +128,13 @@ always output positive numbers for positive inputs, so this also makes physical 
     begin
         n_input = 2
         n_output = 1
-        chain = multi_layer_feed_forward(; n_input, n_output, depth=1, width=4, activation=Lux.swish)
+        chain = multi_layer_feed_forward(;
+            n_input, n_output, depth = 1, width = 4, activation = Lux.swish)
     end
     @components begin
         port_a = HeatPort()
         port_b = HeatPort()
-        nn = NeuralNetworkBlock(; n_input, n_output, chain, rng=StableRNG(1337))
+        nn = NeuralNetworkBlock(; n_input, n_output, chain, rng = StableRNG(1337))
     end
     @parameters begin
         T0 = 273.15
@@ -160,11 +162,11 @@ end
         C2 = 15
     end
     @components begin
-        input = Blocks.TimeVaryingFunction(f=input_f)
-        source = PrescribedHeatFlow(T_ref=373.15)
-        pot = HeatCapacitor(C=C2, T=273.15)
-        air = ThermalConductor(G=0.1)
-        env = FixedTemperature(T=293.15)
+        input = Blocks.TimeVaryingFunction(f = input_f)
+        source = PrescribedHeatFlow(T_ref = 373.15)
+        pot = HeatCapacitor(C = C2, T = 273.15)
+        air = ThermalConductor(G = 0.1)
+        env = FixedTemperature(T = 293.15)
         Tsensor = TemperatureSensor()
         thermal_nn = ThermalNN()
     end
@@ -184,7 +186,7 @@ sys3 = mtkcompile(model)
 # Let's check that we can successfully simulate the system in the
 # initial state
 prob3 = ODEProblem(sys3, Pair[], (0, 100.0))
-sol3 = solve(prob3, Tsit5(), abstol=1e-6, reltol=1e-6)
+sol3 = solve(prob3, Tsit5(), abstol = 1e-6, reltol = 1e-6)
 @assert SciMLBase.successful_retcode(sol3)
 ```
 
@@ -209,23 +211,28 @@ x0 = prob3.ps[tp]
 
 oop_update = setsym_oop(prob3, tp);
 
-plot_cb = (opt_state, loss) -> begin
+plot_cb = (opt_state,
+    loss) -> begin
     opt_state.iter % 1000 ≠ 0 && return false
     @info "step $(opt_state.iter), loss: $loss"
 
     (new_u0, new_p) = oop_update(prob3, opt_state.u)
-    new_prob = remake(prob3, u0=new_u0, p=new_p)
-    sol = solve(new_prob, Tsit5(), abstol=1e-8, reltol=1e-8)
+    new_prob = remake(prob3, u0 = new_u0, p = new_p)
+    sol = solve(new_prob, Tsit5(), abstol = 1e-8, reltol = 1e-8)
 
-    plt = plot(sol, layout=(2,3), idxs=[
-        sys3.thermal_nn.nn.inputs[1], sys3.thermal_nn.x,
-        sys3.thermal_nn.nn.outputs[1], sys3.thermal_nn.port_b.T,
-        sys3.pot.T, sys3.pot.port.Q_flow],
-        size=(950,800))
-    plot!(plt, sol1, idxs=[
-        (sys1.conduction.port_a.T-273.15)/10, sys1.conduction.port_a.T,
-        sys1.conduction.port_a.Q_flow, sys1.conduction.port_b.T,
-        sys1.pot.T, sys1.pot.port.Q_flow])
+    plt = plot(sol,
+        layout = (2, 3),
+        idxs = [
+            sys3.thermal_nn.nn.inputs[1], sys3.thermal_nn.x,
+            sys3.thermal_nn.nn.outputs[1], sys3.thermal_nn.port_b.T,
+            sys3.pot.T, sys3.pot.port.Q_flow],
+        size = (950, 800))
+    plot!(plt,
+        sol1,
+        idxs = [
+            (sys1.conduction.port_a.T-273.15)/10, sys1.conduction.port_a.T,
+            sys1.conduction.port_a.Q_flow, sys1.conduction.port_b.T,
+            sys1.pot.T, sys1.pot.port.Q_flow])
     display(plt)
     false
 end
@@ -236,7 +243,8 @@ function cost(x, opt_ps)
     u0, p = oop_update(prob, x)
     new_prob = remake(prob; u0, p)
 
-    new_sol = solve(new_prob, Tsit5(), saveat=ts, abstol=1e-8, reltol=1e-8, verbose=false, sensealg=GaussAdjoint())
+    new_sol = solve(new_prob, Tsit5(), saveat = ts, abstol = 1e-8,
+        reltol = 1e-8, verbose = false, sensealg = GaussAdjoint())
 
     !SciMLBase.successful_retcode(new_sol) && return Inf
 
@@ -249,35 +257,41 @@ data = sol1[sys1.pot.T]
 get_T = getsym(prob3, sys3.pot.T)
 opt_ps = (prob3, oop_update, data, sol1.t, get_T);
 
-op = OptimizationProblem(of, x0, opt_ps,)
+op = OptimizationProblem(of, x0, opt_ps)
 
-res = solve(op, Adam(); maxiters=10_000, callback=plot_cb)
+res = solve(op, Adam(); maxiters = 10_000, callback = plot_cb)
 op2 = OptimizationProblem(of, res.u, opt_ps)
-res2 = solve(op2, LBFGS(linesearch=BackTracking()); maxiters=2000, callback=plot_cb)
+res2 = solve(op2, LBFGS(linesearch = BackTracking()); maxiters = 2000, callback = plot_cb)
 
 (new_u0, new_p) = oop_update(prob3, res2.u)
-new_prob1 = remake(prob3, u0=new_u0, p=new_p)
-new_sol1 = solve(new_prob1, Tsit5(), abstol=1e-6, reltol=1e-6)
+new_prob1 = remake(prob3, u0 = new_u0, p = new_p)
+new_sol1 = solve(new_prob1, Tsit5(), abstol = 1e-6, reltol = 1e-6)
 
-plt = plot(new_sol1, layout=(2,3), idxs=[
-    sys3.thermal_nn.nn.inputs[1], sys3.thermal_nn.x,
-    sys3.thermal_nn.nn.outputs[1], sys3.thermal_nn.port_b.T,
-    sys3.pot.T, sys3.pot.port.Q_flow],
-    size=(950,800))
-plot!(plt, sol1, idxs=[
-    (sys1.conduction.port_a.T-273.15)/10, sys1.conduction.port_a.T,
-    sys1.conduction.port_a.Q_flow, sys1.conduction.port_b.T,
-    sys1.pot.T, sys1.pot.port.Q_flow], ls=:dash)
+plt = plot(new_sol1,
+    layout = (2, 3),
+    idxs = [
+        sys3.thermal_nn.nn.inputs[1], sys3.thermal_nn.x,
+        sys3.thermal_nn.nn.outputs[1], sys3.thermal_nn.port_b.T,
+        sys3.pot.T, sys3.pot.port.Q_flow],
+    size = (950, 800))
+plot!(plt,
+    sol1,
+    idxs = [
+        (sys1.conduction.port_a.T-273.15)/10, sys1.conduction.port_a.T,
+        sys1.conduction.port_a.Q_flow, sys1.conduction.port_b.T,
+        sys1.pot.T, sys1.pot.port.Q_flow],
+    ls = :dash)
 ```
 
 As we can see from the final plot, the neural network fits very well and not only the training data fits, but also the rest of the
 predictions of the system match the original system. Let us also compare against the predictions of the incomplete system:
 
 ```@example potplate
-plot(sol1, label=["original sys: pot T" "original sys: plate T"], lw=3)
-plot!(sol3; idxs=[sys3.pot.T], label="untrained UDE", lw=2.5)
-plot!(sol2; idxs=[sys2.pot.T], label="incomplete sys: pot T", lw=2.5)
-plot!(new_sol1; idxs=[sys3.pot.T, sys3.thermal_nn.x], label="trained UDE", ls=:dash, lw=2.5)
+plot(sol1, label = ["original sys: pot T" "original sys: plate T"], lw = 3)
+plot!(sol3; idxs = [sys3.pot.T], label = "untrained UDE", lw = 2.5)
+plot!(sol2; idxs = [sys2.pot.T], label = "incomplete sys: pot T", lw = 2.5)
+plot!(new_sol1; idxs = [sys3.pot.T, sys3.thermal_nn.x],
+    label = "trained UDE", ls = :dash, lw = 2.5)
 ```
 
 Now that our neural network is trained, we can go a step further and use [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to find

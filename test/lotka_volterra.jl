@@ -18,7 +18,7 @@ using Statistics
 
 function lotka_ude()
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
+    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
     Dt = ModelingToolkit.D_nounits
 
     chain = multi_layer_feed_forward(2, 2)
@@ -125,7 +125,7 @@ res_sol = solve(res_prob, Vern9())
 
 function lotka_ude2()
     @variables t x(t)=3.1 y(t)=1.5 pred(t)[1:2]
-    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
+    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
     chain = multi_layer_feed_forward(2, 2)
     NN, p = SymbolicNeuralNetwork(; chain, n_input = 2, n_output = 2, rng = StableRNG(42))
     Dt = ModelingToolkit.D_nounits
