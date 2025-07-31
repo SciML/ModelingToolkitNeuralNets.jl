@@ -12,8 +12,9 @@ function multi_layer_feed_forward(; n_input, n_output, width::Int = 4,
         Lux.Dense(n_input, width, activation; use_bias),
         [Lux.Dense(width, width, activation; use_bias) for _ in 1:(depth)]...,
         Lux.Dense(width, n_output;
-            init_weight = (rng, a...) -> initial_scaling_factor *
-                                         Lux.kaiming_uniform(rng, a...), use_bias)
+            init_weight = (
+                rng, a...) -> initial_scaling_factor *
+                              Lux.kaiming_uniform(rng, a...), use_bias)
     )
 end
 
