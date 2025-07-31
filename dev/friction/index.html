@@ -13,7 +13,44 @@ using SymbolicIndexingInterface
 using Statistics
 using StableRNGs
 using Lux
-using Plots</code></pre><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>Let&#39;s use the friction model presented in https://www.mathworks.com/help/simscape/ref/translationalfriction.html for generating data.</p><pre><code class="language-julia hljs">Fbrk = 100.0
+using Plots</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Precompiling ModelingToolkitStandardLibrary...
+   9868.2 ms  ? Symbolics
+    636.0 ms  ? DifferentiationInterface → DifferentiationInterfaceSymbolicsExt
+    806.2 ms  ? Symbolics → SymbolicsForwardDiffExt
+    828.1 ms  ? Symbolics → SymbolicsPreallocationToolsExt
+    858.3 ms  ? ModelingToolkit
+Info Given ModelingToolkitStandardLibrary was explicitly requested, output will be shown live 
+┌ Warning: Module Symbolics with build ID ffffffff-ffff-ffff-3f62-f321e2311c4a is missing from the cache.
+│ This may mean Symbolics [0c5d862f-8b57-4792-8d23-62f2024744c7] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541
+    620.6 ms  ? ModelingToolkitStandardLibrary
+┌ Warning: Module Symbolics with build ID ffffffff-ffff-ffff-3f62-f321e2311c4a is missing from the cache.
+│ This may mean Symbolics [0c5d862f-8b57-4792-8d23-62f2024744c7] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541
+Precompiling SymbolicsPreallocationToolsExt...
+   9879.5 ms  ? Symbolics
+    847.6 ms  ? Symbolics → SymbolicsForwardDiffExt
+Info Given SymbolicsPreallocationToolsExt was explicitly requested, output will be shown live 
+┌ Warning: Module Symbolics with build ID ffffffff-ffff-ffff-3f62-f321e2311c4a is missing from the cache.
+│ This may mean Symbolics [0c5d862f-8b57-4792-8d23-62f2024744c7] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541
+    861.7 ms  ? Symbolics → SymbolicsPreallocationToolsExt
+┌ Warning: Module Symbolics with build ID ffffffff-ffff-ffff-3f62-f321e2311c4a is missing from the cache.
+│ This may mean Symbolics [0c5d862f-8b57-4792-8d23-62f2024744c7] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541
+Precompiling OptimizationMTKExt...
+   9628.0 ms  ? Symbolics
+    664.6 ms  ? DifferentiationInterface → DifferentiationInterfaceSymbolicsExt
+    839.9 ms  ? Symbolics → SymbolicsForwardDiffExt
+    841.6 ms  ? ModelingToolkit
+Info Given OptimizationMTKExt was explicitly requested, output will be shown live 
+┌ Warning: Module ModelingToolkit with build ID ffffffff-ffff-ffff-bb2b-7f77ee06d5e3 is missing from the cache.
+│ This may mean ModelingToolkit [961ee093-0014-501f-94e3-6117800e7a78] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541
+   1433.0 ms  ? OptimizationBase → OptimizationMTKExt
+┌ Warning: Module ModelingToolkit with build ID ffffffff-ffff-ffff-bb2b-7f77ee06d5e3 is missing from the cache.
+│ This may mean ModelingToolkit [961ee093-0014-501f-94e3-6117800e7a78] does not support precompilation but is imported by a module that does.
+└ @ Base loading.jl:2541</code></pre><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>Let&#39;s use the friction model presented in https://www.mathworks.com/help/simscape/ref/translationalfriction.html for generating data.</p><pre><code class="language-julia hljs">Fbrk = 100.0
 vbrk = 10.0
 Fc = 80.0
 vst = vbrk / 10
@@ -73,7 +110,7 @@ u: 101-element Vector{Vector{Float64}}:
  [8.965787387930437]
  [9.040779413677747]
  [9.115482913959694]
- [9.189900709679812]</code></pre><p>Let&#39;s plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, label = &quot;velocity&quot;)</code></pre><img src="6f28052f.svg" alt="Example block output"/><p>That was the velocity. Let&#39;s also plot the friction force acting on the object throughout the simulation.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;friction force&quot;)</code></pre><img src="d8b17c57.svg" alt="Example block output"/><h2 id="Model-Setup"><a class="docs-heading-anchor" href="#Model-Setup">Model Setup</a><a id="Model-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Setup" title="Permalink"></a></h2><p>Now, we will try to learn the same friction model using a neural network. We will use <a href="../api/#ModelingToolkitNeuralNets.NeuralNetworkBlock"><code>NeuralNetworkBlock</code></a> to define neural network as a component. The input of the neural network is the velocity and the output is the friction force. We connect the neural network with the model using <code>RealInputArray</code> and <code>RealOutputArray</code> blocks.</p><pre><code class="language-julia hljs">function friction_ude(Fu)
+ [9.189900709679812]</code></pre><p>Let&#39;s plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, label = &quot;velocity&quot;)</code></pre><img src="d407d4d0.svg" alt="Example block output"/><p>That was the velocity. Let&#39;s also plot the friction force acting on the object throughout the simulation.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;friction force&quot;)</code></pre><img src="9d04700c.svg" alt="Example block output"/><h2 id="Model-Setup"><a class="docs-heading-anchor" href="#Model-Setup">Model Setup</a><a id="Model-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Setup" title="Permalink"></a></h2><p>Now, we will try to learn the same friction model using a neural network. We will use <a href="../api/#ModelingToolkitNeuralNets.NeuralNetworkBlock"><code>NeuralNetworkBlock</code></a> to define neural network as a component. The input of the neural network is the velocity and the output is the friction force. We connect the neural network with the model using <code>RealInputArray</code> and <code>RealOutputArray</code> blocks.</p><pre><code class="language-julia hljs">function friction_ude(Fu)
     @variables y(t) = 0.0
     @constants Fu = Fu
 
@@ -190,6 +227,6 @@ u: 101-element Vector{Vector{Float64}}:
  [12.001431274130391]
  [12.12376419432421]</code></pre><p>Now we plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, idxs = [model_true.y], label = &quot;ground truth velocity&quot;)
 plot!(res_sol, idxs = [sys.y], label = &quot;velocity after training&quot;)
-plot!(initial_sol, idxs = [sys.y], label = &quot;velocity before training&quot;)</code></pre><img src="27b892da.svg" alt="Example block output"/><p>It matches the data well! Let&#39;s also check the predictions for the friction force and whether the network learnt the friction model or not.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;ground truth friction&quot;)
+plot!(initial_sol, idxs = [sys.y], label = &quot;velocity before training&quot;)</code></pre><img src="200b8586.svg" alt="Example block output"/><p>It matches the data well! Let&#39;s also check the predictions for the friction force and whether the network learnt the friction model or not.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;ground truth friction&quot;)
 plot!(res_sol.t, getindex.(res_sol[sys.nn.outputs], 1),
-    label = &quot;friction from neural network&quot;)</code></pre><img src="194d7eeb.svg" alt="Example block output"/><p>It learns the friction model well!</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nnblock/">« NeuralNetworkBlock</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Tuesday 29 July 2025 21:51">Tuesday 29 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+    label = &quot;friction from neural network&quot;)</code></pre><img src="6a21e3cf.svg" alt="Example block output"/><p>It learns the friction model well!</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nnblock/">« NeuralNetworkBlock</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Thursday 31 July 2025 13:43">Thursday 31 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
