@@ -687,9 +687,9 @@ version = "1.0.5"
 
 [[deps.Enzyme]]
 deps = ["CEnum", "EnzymeCore", "Enzyme_jll", "GPUCompiler", "InteractiveUtils", "LLVM", "Libdl", "LinearAlgebra", "ObjectFile", "PrecompileTools", "Preferences", "Printf", "Random", "SparseArrays"]
-git-tree-sha1 = "1a644ed9b0681542c8f40ba8223ac41bc0f03920"
+git-tree-sha1 = "dadf6d1a552d743e8bfb52eefcf8325625b03232"
 uuid = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-version = "0.13.64"
+version = "0.13.66"
 
     [deps.Enzyme.extensions]
     EnzymeBFloat16sExt = "BFloat16s"
@@ -718,9 +718,9 @@ weakdeps = ["Adapt"]
 
 [[deps.Enzyme_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "7940ea94d7bdc18cf15ec0bf1466aef973d3191e"
+git-tree-sha1 = "a357a553f8dfd461756ff8ed66fd541bdf2d1588"
 uuid = "7cc45869-7501-5eee-bdea-0790c847d4ef"
-version = "0.0.187+0"
+version = "0.0.188+0"
 
 [[deps.EpollShim_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1113,9 +1113,9 @@ version = "3.1.1+0"
 
 [[deps.JuliaFormatter]]
 deps = ["CommonMark", "Glob", "JuliaSyntax", "PrecompileTools", "TOML"]
-git-tree-sha1 = "3e2978dad01a7e0cc65b04b562badb765ed0dae2"
+git-tree-sha1 = "7b3a1a49526f1549e24032520afd812790c37e5b"
 uuid = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
-version = "2.1.4"
+version = "2.1.5"
 
 [[deps.JuliaSyntax]]
 git-tree-sha1 = "937da4713526b96ac9a178e2035019d3b78ead4a"
@@ -1428,9 +1428,9 @@ version = "1.1.0"
 
 [[deps.LossFunctions]]
 deps = ["Markdown", "Requires", "Statistics"]
-git-tree-sha1 = "3e91117bd9da5e68f1fbf3d08808226ae71981b7"
+git-tree-sha1 = "9d7bdac31470c59688dcfce467677f131205b681"
 uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
-version = "1.0.1"
+version = "1.0.2"
 
     [deps.LossFunctions.extensions]
     LossFunctionsCategoricalArraysExt = "CategoricalArrays"
@@ -1933,9 +1933,9 @@ version = "0.4.6"
 
 [[deps.Optimization]]
 deps = ["ADTypes", "ArrayInterface", "ConsoleProgressMonitor", "DocStringExtensions", "LBFGSB", "LinearAlgebra", "Logging", "LoggingExtras", "OptimizationBase", "Printf", "ProgressLogging", "Reexport", "SciMLBase", "SparseArrays", "TerminalLoggers"]
-git-tree-sha1 = "c385fdca85f0d6f2f6ade194b4236eaad621e77d"
+git-tree-sha1 = "41902230755effe29a8599ea4b61dc3ffc2c952d"
 uuid = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
-version = "4.4.0"
+version = "4.5.0"
 
 [[deps.OptimizationBase]]
 deps = ["ADTypes", "ArrayInterface", "DifferentiationInterface", "DocStringExtensions", "FastClosures", "LinearAlgebra", "PDMats", "Reexport", "Requires", "SciMLBase", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings"]
@@ -2703,9 +2703,9 @@ version = "3.29.0"
 
 [[deps.Symbolics]]
 deps = ["ADTypes", "ArrayInterface", "Bijections", "CommonWorldInvalidations", "ConstructionBase", "DataStructures", "DiffRules", "Distributions", "DocStringExtensions", "DomainSets", "DynamicPolynomials", "LaTeXStrings", "Latexify", "Libdl", "LinearAlgebra", "LogExpFunctions", "MacroTools", "Markdown", "NaNMath", "OffsetArrays", "PrecompileTools", "Primes", "RecipesBase", "Reexport", "RuntimeGeneratedFunctions", "SciMLBase", "Setfield", "SparseArrays", "SpecialFunctions", "StaticArraysCore", "SymbolicIndexingInterface", "SymbolicLimits", "SymbolicUtils", "TermInterface"]
-git-tree-sha1 = "9300cd9909839a5265c880ec23a249f2c48a6ced"
+git-tree-sha1 = "6eac6fe46d0e0f21baebc87d97dc118827737e05"
 uuid = "0c5d862f-8b57-4792-8d23-62f2024744c7"
-version = "6.48.0"
+version = "6.48.1"
 
     [deps.Symbolics.extensions]
     SymbolicsD3TreesExt = "D3Trees"
