@@ -1,2 +1,14 @@
 [default.extend-words]
 nin = "nin"
+# Additional SciML terms
+setp = "setp"
+getp = "getp"
+indexin = "indexin"
+ists = "ists"
+ispcs = "ispcs"
+eqs = "eqs"
+rhs = "rhs"
+MTK = "MTK"
+
+# Julia data handling terms
+Missings = "Missings"  # Julia's Missing data type (plural form)

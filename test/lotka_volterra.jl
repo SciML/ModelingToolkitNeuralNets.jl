@@ -19,7 +19,7 @@ using Lux
 
 function lotka_ude(chain)
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
+    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
     Dt = ModelingToolkit.D_nounits
 
     @named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
