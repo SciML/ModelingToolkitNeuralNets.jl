@@ -48,18 +48,18 @@ end
 
 rbf(x) = exp.(-(x .^ 2))
 
-chain = Lux.Chain(
-    Lux.Dense(2, 5, rbf), Lux.Dense(5, 5, rbf), Lux.Dense(5, 5, rbf),
-    Lux.Dense(5, 2))
+chain = multi_layer_feed_forward(2, 2, width = 5, initial_scaling_factor = 1)
 ude_sys = lotka_ude(chain)
 
-sys = mtkcompile(ude_sys, allow_symbolic = true)
+sys = mtkcompile(ude_sys)
+
+@test length(equations(sys)) == 2
 
 prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [], (0, 5.0))
 
 model_true = mtkcompile(lotka_true())
 prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 5.0))
-sol_ref = solve(prob_true, Vern9(), abstol = 1e-12, reltol = 1e-12)
+sol_ref = solve(prob_true, Vern9(), abstol = 1e-8, reltol = 1e-8)
 
 ts = range(0, 5.0, length = 21)
 data = reduce(hcat, sol_ref(ts, idxs = [model_true.x, model_true.y]).u)
@@ -69,11 +69,10 @@ x0 = default_values(sys)[sys.nn.p]
 get_vars = getu(sys, [sys.x, sys.y])
 set_x = setsym_oop(sys, sys.nn.p)
 
-function loss(x, (prob, sol_ref, get_vars, data, ts, set_x))
-    # new_u0, new_p = set_x(prob, 1, x)
+function loss(x, (prob, get_vars, data, ts, set_x))
     new_u0, new_p = set_x(prob, x)
     new_prob = remake(prob, p = new_p, u0 = new_u0)
-    new_sol = solve(new_prob, Vern9(), abstol = 1e-10, reltol = 1e-8, saveat = ts)
+    new_sol = solve(new_prob, Vern9(), abstol = 1e-8, reltol = 1e-8, saveat = ts)
 
     if SciMLBase.successful_retcode(new_sol)
         mean(abs2.(reduce(hcat, get_vars(new_sol)) .- data))
@@ -84,7 +83,7 @@ end
 
 of = OptimizationFunction{true}(loss, AutoZygote())
 
-ps = (prob, sol_ref, get_vars, data, ts, set_x);
+ps = (prob, get_vars, data, ts, set_x);
 
 @test_call target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
 @test_opt target_modules=(ModelingToolkitNeuralNets,) loss(x0, ps)
@@ -106,34 +105,36 @@ op = OptimizationProblem(of, x0, ps)
 # oh = []
 
 # plot_cb = (opt_state, loss) -> begin
+#     opt_state.iter % 500 ≠ 0 && return false
 #     @info "step $(opt_state.iter), loss: $loss"
 #     push!(oh, opt_state)
 #     new_p = SciMLStructures.replace(Tunable(), prob.p, opt_state.u)
 #     new_prob = remake(prob, p = new_p)
-#     sol = solve(new_prob, Rodas4())
+#     sol = solve(new_prob, Vern9(), abstol = 1e-8, reltol = 1e-8)
 #     display(plot(sol))
 #     false
 # end
 
-res = solve(op, Adam(), maxiters = 10000)#, callback = plot_cb)
+res = solve(op, Adam(1e-3), maxiters = 25_000)#, callback = plot_cb)
 
 display(res.stats)
-@test res.objective < 1
+@test res.objective < 1.5e-4
 
-res_p = set_x(prob, res.u)
-res_prob = remake(prob, p = res_p)
-res_sol = solve(res_prob, Vern9())
+u0, p = set_x(prob, res.u)
+res_prob = remake(prob; u0, p)
+res_sol = solve(res_prob, Vern9(), abstol = 1e-8, reltol = 1e-8, saveat = ts)
+
+@test SciMLBase.successful_retcode(res_sol)
+@test mean(abs2.(reduce(hcat, get_vars(res_sol)) .- data)) ≈ res.objective
 
 # using Plots
 # plot(sol_ref, idxs = [model_true.x, model_true.y])
 # plot!(res_sol, idxs = [sys.x, sys.y])
 
-@test SciMLBase.successful_retcode(res_sol)
-
 function lotka_ude2()
     @variables t x(t)=3.1 y(t)=1.5 pred(t)[1:2]
     @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
-    chain = multi_layer_feed_forward(2, 2)
+    chain = multi_layer_feed_forward(2, 2; width = 5, initial_scaling_factor = 1)
     NN, p = SymbolicNeuralNetwork(; chain, n_input = 2, n_output = 2, rng = StableRNG(42))
     Dt = ModelingToolkit.D_nounits
 
@@ -145,16 +146,16 @@ end
 
 sys2 = mtkcompile(lotka_ude2())
 
-prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [], (0, 1.0))
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [], (0, 5.0))
 
 sol = solve(prob, Vern9(), abstol = 1e-10, reltol = 1e-8)
 
 @test SciMLBase.successful_retcode(sol)
 
-set_x2 = setp_oop(sys2, sys2.p)
-ps2 = (prob, sol_ref, get_vars, get_refs, set_x2);
+set_x2 = setsym_oop(sys2, sys2.p)
+ps2 = (prob, get_vars, data, ts, set_x2);
 op2 = OptimizationProblem(of, x0, ps2)
 
-res2 = solve(op2, Adam(), maxiters = 10000)
+res2 = solve(op2, Adam(1e-3), maxiters = 25_000)
 
 @test res.u ≈ res2.u
