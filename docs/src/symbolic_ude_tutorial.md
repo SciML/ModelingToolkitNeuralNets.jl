@@ -1,6 +1,6 @@
 # Symbolic UDE Creation
 
-This tutorial will demonstrate a simple interface for symbolic declaration neural networks that can be directly added to ModelingToolkit-declared ODE models to create UDEs. For our example we will use a simple self-activation loop model, however, it can be easily generalised to more model types.
+This tutorial will demonstrate a simple interface for symbolic declaration neural networks that can be directly added to ModelingToolkit-declared ODE models to create UDEs. The primarily functionality we show is the `SymbolicNeuralNetwork` function, however, we will show how it can be incorporated into a full workflow. For our example we will use a simple self-activation loop model, however, it can be easily generalised to more model types.
 
 ### Ground truth model and synthetic data generation
 
