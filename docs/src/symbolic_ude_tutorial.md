@@ -29,17 +29,17 @@ sol_true = solve(oprob_true)
 plot(sol_true; lw = 6, idxs = [X, Y])
 ```
 
-Finally, we generate noisy measured samples from both `X` and `Y` (to which we will fir the UDE).
+Finally, we generate noisy measured samples from both `X` and `Y` (to which we will fit the UDE).
 ```@example symbolic_ude
 sample_t = range(0.0, tend; length = 20)
-sample_X = [(0.8 + 0.4rand()) * X for X in sol_true(sample_t; idxs = X)]
-sample_Y = [(0.8 + 0.4rand()) * Y for Y in sol_true(sample_t; idxs = Y)]
+sample_X = [(0.8 + 0.4rand()) * X_sample for X_sample in sol_true(sample_t; idxs = X)]
+sample_Y = [(0.8 + 0.4rand()) * Y_sample for Y_sample in sol_true(sample_t; idxs = Y)]
 plot!(sample_t, sample_X, seriestype = :scatter, label = "X (data)", color = 1, ms = 6, alpha = 0.7)
 plot!(sample_t, sample_Y, seriestype = :scatter, label = "Y (data)", color = 2, ms = 6, alpha = 0.7)
 ```
 
 ### UDE declaration and training
-First, we used Lux.jl to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use `softplus` throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).
+First, we use Lux.jl to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use `softplus` throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).
 ```@example symbolic_ude
 using Lux
 nn_arch = Lux.Chain(
@@ -67,7 +67,15 @@ eqs_ude = [
 
 We can now fit our UDE model (including the neural network and the parameter d) to the data. First, we define a loss function which compares the UDE's simulation to the data.
 ```@example symbolic_ude
-
+function loss(ps, (oprob_base, set_ps, sample_t, sample_X, sample_Y))
+    p = set_ps(oprob_base, ps)
+    new_oprob = remake(oprob_base; p)
+    new_osol = solve(new_oprob; saveat = sample_t, verbose = false, maxiters = 10000)
+    SciMLBase.successful_retcode(new_osol) || return Inf # Simulation failed -> Inf loss.
+    x_error = sum((x_sim - x_data)^2 for (x_sim, x_data) in zip(new_osol[X], sample_X))
+    y_error = sum((y_sim - y_data)^2 for (y_sim, y_data) in zip(new_osol[Y], sample_Y))
+    return x_error + y_error
+end
 ```
 
 Next, we use Optimization.jl to create an `OptimizationProblem`. This uses a similar syntax to normal parameter inference workflows, however, we need to add the entire neural network parameterisation to the optimization parameter vector.
