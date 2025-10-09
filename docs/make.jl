@@ -21,7 +21,7 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Tutorials" => ["NeuralNetworkBlock" => "nnblock.md"
-                        "Friction Model" => "friction.md",
+                        "Friction Model" => "friction.md"
                         "Symbolic UDE Creation" => "symbolic_ude_tutorial.md"],
         "API" => "api.md"
     ]
