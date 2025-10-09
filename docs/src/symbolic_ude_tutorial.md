@@ -1,6 +1,6 @@
 # Symbolic UDE Creation
 
-This tutorial will demonstrate a simple interface for symbolic declaration neural networks that can be directly added to ModelingToolkit-declared ODE models to create UDEs. The primarily functionality we show is the `SymbolicNeuralNetwork` function, however, we will show how it can be incorporated into a full workflow. For our example we will use a simple self-activation loop model, however, it can be easily generalised to more model types.
+This tutorial will demonstrate a simple interface for symbolic declaration neural networks that can be directly added to [ModelingToolkit.jl](https://github.com/SciML/ModelingToolkit.jl)-declared ODE models to create UDEs. The primarily functionality we show is the [`SymbolicNeuralNetwork`](@ref) function, however, we will show how it can be incorporated into a full workflow. For our example we will use a simple self-activation loop model, however, it can be easily generalised to more model types.
 
 ### Ground truth model and synthetic data generation
 
@@ -39,7 +39,7 @@ plot!(sample_t, sample_Y, seriestype = :scatter, label = "Y (data)", color = 2, 
 ```
 
 ### UDE declaration and training
-First, we use Lux.jl to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use `softplus` throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).
+First, we use [Lux.jl](https://github.com/LuxDL/Lux.jl) to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use `softplus` throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).
 ```@example symbolic_ude
 using Lux
 nn_arch = Lux.Chain(
@@ -49,7 +49,7 @@ nn_arch = Lux.Chain(
 )
 ```
 
-Next, we can use ModelingToolkitNeuralNets to turn our neural network to a Symbolic neural network representation (which can later be inserted into an ModelingToolkit model).
+Next, we can use [ModelingToolkitNeuralNets.jl](https://github.com/SciML/ModelingToolkitNeuralNets.jl) to turn our neural network to a Symbolic neural network representation (which can later be inserted into an ModelingToolkit model).
 ```@example symbolic_ude
 using ModelingToolkitNeuralNets
 sym_nn, θ = SymbolicNeuralNetwork(; nn_p_name = :θ, chain = nn_arch, n_input = 1, n_output = 1)
@@ -78,7 +78,7 @@ function loss(ps, (oprob_base, set_ps, sample_t, sample_X, sample_Y))
 end
 ```
 
-Next, we use Optimization.jl to create an `OptimizationProblem`. This uses a similar syntax to normal parameter inference workflows, however, we need to add the entire neural network parameterisation to the optimization parameter vector.
+Next, we use [Optimization.jl](https://github.com/SciML/Optimization.jl) to create an `OptimizationProblem`. This uses a similar syntax to normal parameter inference workflows, however, we need to add the entire neural network parameterisation to the optimization parameter vector.
 ```@example symbolic_ude
 using Optimization
 oprob_base = ODEProblem(xy_model_ude, u0, (0.0, tend))
