@@ -19,13 +19,13 @@ eqs = [D(X) ~ v * (Y^n) / (K^n + Y^n) - d*X
 Next, we simulate our model for a true parameter set (which we wish to recover).
 
 ```@example symbolic_ude
-using OrdinaryDiffEqDefault, Plots
+using OrdinaryDiffEqTsit5, Plots
 u0 = [X => 2.0, Y => 0.1]
 ps_true = [v => 1.1, K => 2.0, n => 3.0, d => 0.5]
 sim_cond = [u0; ps_true]
 tend = 45.0
 oprob_true = ODEProblem(xy_model, sim_cond, (0.0, tend))
-sol_true = solve(oprob_true)
+sol_true = solve(oprob_true, Tsit5())
 plot(sol_true; lw = 6, idxs = [X, Y])
 ```
 
@@ -77,7 +77,7 @@ We can now fit our UDE model (including the neural network and the parameter d) 
 function loss(ps, (oprob_base, set_ps, sample_t, sample_X, sample_Y))
     p = set_ps(oprob_base, ps)
     new_oprob = remake(oprob_base; p)
-    new_osol = solve(new_oprob; saveat = sample_t, verbose = false, maxiters = 10000)
+    new_osol = solve(new_oprob, Tsit5(); saveat = sample_t, verbose = false, maxiters = 10000)
     SciMLBase.successful_retcode(new_osol) || return Inf # Simulation failed -> Inf loss.
     x_error = sum((x_sim - x_data)^2 for (x_sim, x_data) in zip(new_osol[X], sample_X))
     y_error = sum((y_sim - y_data)^2 for (y_sim, y_data) in zip(new_osol[Y], sample_Y))
@@ -108,7 +108,7 @@ By plotting a simulation from our fitted UDE, we can confirm that it can reprodu
 
 ```@example symbolic_ude
 oprob_fitted = remake(oprob_base; p = set_ps(oprob_base, opt_sol.u))
-sol_fitted = solve(oprob_fitted)
+sol_fitted = solve(oprob_fitted, Tsit5())
 plot!(sol_true; lw = 4, la = 0.7, linestyle = :dash, idxs = [X, Y], color = [:blue :red],
     label = ["X (UDE)" "Y (UDE)"])
 ```
