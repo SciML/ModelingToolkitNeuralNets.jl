@@ -6,4 +6,5 @@ using SafeTestsets
     @safetestset "QA" include("qa.jl")
     @safetestset "Basic" include("lotka_volterra.jl")
     @safetestset "MTK model macro compatibility" include("macro.jl")
+    @safetestset "Scalar dispatch" include("scalar_dispatch.jl")
 end
