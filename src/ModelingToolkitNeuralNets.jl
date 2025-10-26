@@ -121,6 +121,10 @@ function (wrapper::StatelessApplyWrapper)(input::AbstractArray, nn_p::AbstractVe
     stateless_apply(get_network(wrapper), input, convert(wrapper.T, nn_p))
 end
 
+function (wrapper::StatelessApplyWrapper)(input::Number, nn_p::AbstractVector)
+    wrapper([input], nn_p)
+end
+
 function Base.show(io::IO, m::MIME"text/plain", wrapper::StatelessApplyWrapper)
     printstyled(io, "LuxCore.stateless_apply wrapper for:\n", color = :gray)
     show(io, m, get_network(wrapper))
