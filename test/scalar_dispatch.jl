@@ -18,7 +18,9 @@ using OrdinaryDiffEqVerner
         Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
     )
 
-    sym_nn, θ = SymbolicNeuralNetwork(; nn_p_name = :θ, chain, n_input = 1, n_output = 1, rng = StableRNG(42))
+    sym_nn,
+    θ = SymbolicNeuralNetwork(;
+        nn_p_name = :θ, chain, n_input = 1, n_output = 1, rng = StableRNG(42))
 
     # Test that scalar dispatch works (fix for issue #83)
     # Previously required: sym_nn([Y], θ)[1]
