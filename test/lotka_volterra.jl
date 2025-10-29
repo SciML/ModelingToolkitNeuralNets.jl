@@ -2,10 +2,9 @@ using Test
 using JET
 using ModelingToolkitNeuralNets
 using ModelingToolkit
-using ModelingToolkitStandardLibrary.Blocks
 using OrdinaryDiffEqVerner
 using SymbolicIndexingInterface
-using Optimization
+using OptimizationBase
 using OptimizationOptimisers: Adam
 using SciMLStructures
 using SciMLStructures: Tunable, canonicalize
@@ -19,7 +18,7 @@ using Lux
 
 function lotka_ude(chain)
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
+    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
     Dt = ModelingToolkit.D_nounits
 
     @named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(42))
@@ -36,7 +35,7 @@ end
 
 function lotka_true()
     @variables t x(t)=3.1 y(t)=1.5
-    @parameters α=1.3 [tunable=false] β=0.9 γ=0.8 δ=1.8 [tunable=false]
+    @parameters α=1.3 [tunable = false] β=0.9 γ=0.8 δ=1.8 [tunable = false]
     Dt = ModelingToolkit.D_nounits
 
     eqs = [
@@ -133,7 +132,7 @@ res_sol = solve(res_prob, Vern9(), abstol = 1e-8, reltol = 1e-8, saveat = ts)
 
 function lotka_ude2()
     @variables t x(t)=3.1 y(t)=1.5 pred(t)[1:2]
-    @parameters α=1.3 [tunable=false] δ=1.8 [tunable=false]
+    @parameters α=1.3 [tunable = false] δ=1.8 [tunable = false]
     chain = multi_layer_feed_forward(2, 2; width = 5, initial_scaling_factor = 1)
     NN, p = SymbolicNeuralNetwork(; chain, n_input = 2, n_output = 2, rng = StableRNG(42))
     Dt = ModelingToolkit.D_nounits
