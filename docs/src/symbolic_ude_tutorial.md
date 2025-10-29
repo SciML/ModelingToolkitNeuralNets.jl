@@ -60,7 +60,7 @@ Next, we can use [ModelingToolkitNeuralNets.jl](https://github.com/SciML/Modelin
 using ModelingToolkitNeuralNets
 sym_nn,
 θ = SymbolicNeuralNetwork(; nn_p_name = :θ, chain = nn_arch, n_input = 1, n_output = 1)
-sym_nn_func(x) = sym_nn([x], θ)[1]
+sym_nn_func(x) = sym_nn(x, θ)[1]
 ```
 
 Now we can create our UDE. We replace the (from now on unknown) function `v * (Y^n) / (K^n + Y^n)` with our symbolic neural network (which we let be a function of the variable `Y` only).
@@ -77,7 +77,7 @@ We can now fit our UDE model (including the neural network and the parameter d) 
 function loss(ps, (oprob_base, set_ps, sample_t, sample_X, sample_Y))
     p = set_ps(oprob_base, ps)
     new_oprob = remake(oprob_base; p)
-    new_osol = solve(new_oprob, Tsit5(); saveat = sample_t, verbose = false, maxiters = 10000)
+    new_osol = solve(new_oprob, Tsit5(); saveat = sample_t, verbose = false)
     SciMLBase.successful_retcode(new_osol) || return Inf # Simulation failed -> Inf loss.
     x_error = sum((x_sim - x_data)^2 for (x_sim, x_data) in zip(new_osol[X], sample_X))
     y_error = sum((y_sim - y_data)^2 for (y_sim, y_data) in zip(new_osol[Y], sample_Y))
@@ -89,11 +89,12 @@ Next, we use [Optimization.jl](https://github.com/SciML/Optimization.jl) to crea
 
 ```@example symbolic_ude
 using Optimization
+using SymbolicIndexingInterface: setp_oop
 oprob_base = ODEProblem(xy_model_ude, u0, (0.0, tend))
-set_ps = ModelingToolkit.setp_oop(oprob_base, [d, θ...])
+set_ps = setp_oop(oprob_base, [d; θ])
 loss_params = (oprob_base, set_ps, sample_t, sample_X, sample_Y)
-ps_init = oprob_base.ps[[d, θ...]]
-of = OptimizationFunction{true}(loss, AutoForwardDiff())
+ps_init = oprob_base.ps[[d; θ]]
+of = OptimizationFunction(loss, AutoForwardDiff())
 opt_prob = OptimizationProblem(of, ps_init, loss_params)
 ```
 
@@ -111,4 +112,15 @@ oprob_fitted = remake(oprob_base; p = set_ps(oprob_base, opt_sol.u))
 sol_fitted = solve(oprob_fitted, Tsit5())
 plot!(sol_true; lw = 4, la = 0.7, linestyle = :dash, idxs = [X, Y], color = [:blue :red],
     label = ["X (UDE)" "Y (UDE)"])
+```
+
+We can also inspect how the function described by the neural network looks like and how does it compare
+to the known correct function
+```@example symbolic_ude
+true_func(y) = 1.1 * (y^3) / (2^3 + y^3)
+fitted_func(y) = oprob_fitted.ps[sym_nn](y, oprob_fitted.ps[θ])[1]
+
+# Plots the true and fitted functions (we mostly got the correct one, but less accurate in some regions).
+plot(true_func, 0.0, 5.0; lw=8, label="True function", color=:lightblue)
+plot!(fitted_func, 0.0, 5.0; lw=6, label="Fitted function", color=:blue, la=0.7, linestyle=:dash)
 ```
