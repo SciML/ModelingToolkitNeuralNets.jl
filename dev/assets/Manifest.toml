@@ -687,9 +687,9 @@ version = "1.0.5"
 
 [[deps.Enzyme]]
 deps = ["CEnum", "EnzymeCore", "Enzyme_jll", "GPUCompiler", "InteractiveUtils", "LLVM", "Libdl", "LinearAlgebra", "ObjectFile", "PrecompileTools", "Preferences", "Printf", "Random", "SparseArrays"]
-git-tree-sha1 = "b36b64b70d4dd2d5473ffecfd9bf298fe7dcaf5b"
+git-tree-sha1 = "171861f16ff059a34f6f53161588e57e58f5b386"
 uuid = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-version = "0.13.96"
+version = "0.13.97"
 
     [deps.Enzyme.extensions]
     EnzymeBFloat16sExt = "BFloat16s"
@@ -721,9 +721,9 @@ weakdeps = ["Adapt"]
 
 [[deps.Enzyme_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "a24799d1ca416f80b2c589b66d82867db3f70624"
+git-tree-sha1 = "d52715428149caceafa3c9fd32d1c5cb1b1f729d"
 uuid = "7cc45869-7501-5eee-bdea-0790c847d4ef"
-version = "0.0.207+0"
+version = "0.0.208+0"
 
 [[deps.EpollShim_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -810,9 +810,9 @@ version = "1.11.0"
 
 [[deps.FillArrays]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "173e4d8f14230a7523ae11b9a3fa9edb3e0efd78"
+git-tree-sha1 = "5bfcd42851cf2f1b303f51525a54dc5e98d408a3"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "1.14.0"
+version = "1.15.0"
 weakdeps = ["PDMats", "SparseArrays", "Statistics"]
 
     [deps.FillArrays.extensions]
