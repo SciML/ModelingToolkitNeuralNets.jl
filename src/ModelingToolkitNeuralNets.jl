@@ -1,6 +1,6 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkit: @parameters, @named, @variables, System, t_nounits
+using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits
 using IntervalSets: var".."
 using Symbolics: Symbolics, @register_array_symbolic, @wrapped
 using LuxCore: stateless_apply, outputsize
