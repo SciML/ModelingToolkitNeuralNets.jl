@@ -21,7 +21,7 @@ SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [sources]
-ModelingToolkitNeuralNets = {path = "/home/runner/work/ModelingToolkitNeuralNets.jl/ModelingToolkitNeuralNets.jl"}
+ModelingToolkitNeuralNets = {path = "/home/chrisrackauckas/github-runners/deepsea3-16/_work/ModelingToolkitNeuralNets.jl/ModelingToolkitNeuralNets.jl"}
 
 [compat]
 Documenter = "1.3"

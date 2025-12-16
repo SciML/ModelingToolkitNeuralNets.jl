@@ -16,13 +16,13 @@ sim_cond = [u0; ps_true]
 tend = 45.0
 oprob_true = ODEProblem(xy_model, sim_cond, (0.0, tend))
 sol_true = solve(oprob_true, Tsit5())
-plot(sol_true; lw = 6, idxs = [X, Y])</code></pre><img src="819ae0d3.svg" alt="Example block output"/><p>Finally, we generate noisy measured samples from both <code>X</code> and <code>Y</code> (to which we will fit the UDE).</p><pre><code class="language-julia hljs">sample_t = range(0.0, tend; length = 20)
+plot(sol_true; lw = 6, idxs = [X, Y])</code></pre><img src="5fed08b5.svg" alt="Example block output"/><p>Finally, we generate noisy measured samples from both <code>X</code> and <code>Y</code> (to which we will fit the UDE).</p><pre><code class="language-julia hljs">sample_t = range(0.0, tend; length = 20)
 sample_X = [(0.8 + 0.4rand()) * X_sample for X_sample in sol_true(sample_t; idxs = X)]
 sample_Y = [(0.8 + 0.4rand()) * Y_sample for Y_sample in sol_true(sample_t; idxs = Y)]
 plot!(sample_t, sample_X, seriestype = :scatter,
     label = &quot;X (data)&quot;, color = 1, ms = 6, alpha = 0.7)
 plot!(sample_t, sample_Y, seriestype = :scatter,
-    label = &quot;Y (data)&quot;, color = 2, ms = 6, alpha = 0.7)</code></pre><img src="6d5116bc.svg" alt="Example block output"/><h3 id="UDE-declaration-and-training"><a class="docs-heading-anchor" href="#UDE-declaration-and-training">UDE declaration and training</a><a id="UDE-declaration-and-training-1"></a><a class="docs-heading-anchor-permalink" href="#UDE-declaration-and-training" title="Permalink"></a></h3><p>First, we use <a href="https://github.com/LuxDL/Lux.jl">Lux.jl</a> to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use <code>softplus</code> throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).</p><pre><code class="language-julia hljs">using Lux
+    label = &quot;Y (data)&quot;, color = 2, ms = 6, alpha = 0.7)</code></pre><img src="6f5cdccb.svg" alt="Example block output"/><h3 id="UDE-declaration-and-training"><a class="docs-heading-anchor" href="#UDE-declaration-and-training">UDE declaration and training</a><a id="UDE-declaration-and-training-1"></a><a class="docs-heading-anchor-permalink" href="#UDE-declaration-and-training" title="Permalink"></a></h3><p>First, we use <a href="https://github.com/LuxDL/Lux.jl">Lux.jl</a> to declare the neural network we wish to use for our UDE. For this case, we can use a fairly small network. We use <code>softplus</code> throughout the network we ensure that the fitted UDE function is positive (for our application this is the case, however, it might not always be true).</p><pre><code class="language-julia hljs">using Lux
 nn_arch = Lux.Chain(
     Lux.Dense(1 =&gt; 3, Lux.softplus, use_bias = false),
     Lux.Dense(3 =&gt; 3, Lux.softplus, use_bias = false),
@@ -76,27 +76,27 @@ u0: 16-element Vector{Float64}:
   0.28568029403686523</code></pre><p>Finally, we can fit the UDE to our data. We will use the Adam optimizer.</p><pre><code class="language-julia hljs">import OptimizationOptimisers: Adam
 @time opt_sol = solve(opt_prob, Adam(0.01); maxiters = 10000)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: Default
 u: 16-element Vector{Float64}:
-  0.4547925491028877
-  0.7052894727520524
- -1.0340327287456588
- -0.9633043880356497
- -1.0358352053557298
-  0.5160112749746666
- -0.6527250616741503
-  3.373075776962141
- -0.6275023081008416
-  0.03454901120868908
-  5.003322339988243
- -1.6555393673301464
- -0.3119681256700828
- -1.8059318754105516
-  0.22084212558998934
- -0.11655926082151834</code></pre><p>By plotting a simulation from our fitted UDE, we can confirm that it can reproduce the ground-truth model.</p><pre><code class="language-julia hljs">oprob_fitted = remake(oprob_base; p = set_ps(oprob_base, opt_sol.u))
+  0.48166574770742815
+  0.6583573766153525
+ -0.5208932958281515
+ -0.6351228158485802
+ -1.1606783787149262
+  0.16844249963913
+ -0.31555557563690956
+  2.95691180997054
+ -0.33178396102404056
+  0.21057955017827815
+  4.463817753773051
+ -1.5396176912735968
+ -0.747897133631677
+ -1.198305076004831
+  0.1904881865255719
+  0.90847093261812</code></pre><p>By plotting a simulation from our fitted UDE, we can confirm that it can reproduce the ground-truth model.</p><pre><code class="language-julia hljs">oprob_fitted = remake(oprob_base; p = set_ps(oprob_base, opt_sol.u))
 sol_fitted = solve(oprob_fitted, Tsit5())
 plot!(sol_true; lw = 4, la = 0.7, linestyle = :dash, idxs = [X, Y], color = [:blue :red],
-    label = [&quot;X (UDE)&quot; &quot;Y (UDE)&quot;])</code></pre><img src="e7809ec3.svg" alt="Example block output"/><p>We can also inspect how the function described by the neural network looks like and how does it compare to the known correct function</p><pre><code class="language-julia hljs">true_func(y) = 1.1 * (y^3) / (2^3 + y^3)
+    label = [&quot;X (UDE)&quot; &quot;Y (UDE)&quot;])</code></pre><img src="07a335c0.svg" alt="Example block output"/><p>We can also inspect how the function described by the neural network looks like and how does it compare to the known correct function</p><pre><code class="language-julia hljs">true_func(y) = 1.1 * (y^3) / (2^3 + y^3)
 fitted_func(y) = oprob_fitted.ps[sym_nn](y, oprob_fitted.ps[θ])[1]
 
 # Plots the true and fitted functions (we mostly got the correct one, but less accurate in some regions).
 plot(true_func, 0.0, 5.0; lw=8, label=&quot;True function&quot;, color=:lightblue)
-plot!(fitted_func, 0.0, 5.0; lw=6, label=&quot;Fitted function&quot;, color=:blue, la=0.7, linestyle=:dash)</code></pre><img src="d4790ff4.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../friction/">« Friction Model</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 11 December 2025 05:58">Thursday 11 December 2025</span>. Using Julia version 1.12.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+plot!(fitted_func, 0.0, 5.0; lw=6, label=&quot;Fitted function&quot;, color=:blue, la=0.7, linestyle=:dash)</code></pre><img src="e6334350.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../friction/">« Friction Model</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 16 December 2025 13:41">Tuesday 16 December 2025</span>. Using Julia version 1.12.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
