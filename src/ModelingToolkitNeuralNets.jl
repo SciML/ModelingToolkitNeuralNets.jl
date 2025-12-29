@@ -5,7 +5,7 @@ using IntervalSets: var".."
 using Symbolics: Symbolics, @register_array_symbolic, @wrapped
 using LuxCore: stateless_apply, outputsize
 using Lux: Lux
-using Random: Xoshiro
+using Random: Xoshiro, AbstractRNG
 using ComponentArrays: ComponentArray
 
 export NeuralNetworkBlock, SymbolicNeuralNetwork, multi_layer_feed_forward, get_network
@@ -13,21 +13,21 @@ export NeuralNetworkBlock, SymbolicNeuralNetwork, multi_layer_feed_forward, get_
 include("utils.jl")
 
 """
-    NeuralNetworkBlock(; n_input = 1, n_output = 1,
+    NeuralNetworkBlock(; n_input::Integer = 1, n_output::Integer = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0),
+        rng::AbstractRNG = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
-        eltype = Float64,
-        name)
+        eltype::Type{<:Number} = Float64,
+        name::Symbol)
 
 Create a component neural network as a `System`.
 """
-function NeuralNetworkBlock(; n_input = 1, n_output = 1,
+function NeuralNetworkBlock(; n_input::Integer = 1, n_output::Integer = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0),
+        rng::AbstractRNG = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
-        eltype = Float64,
-        name)
+        eltype::Type{<:Number} = Float64,
+        name::Symbol)
     ca = ComponentArray{eltype}(init_params)
 
     @parameters p[1:length(ca)]=Vector(ca) [tunable = true]
@@ -50,7 +50,7 @@ end
 
 # added to avoid a breaking change from moving n_input & n_output in kwargs
 # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/32
-function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
+function NeuralNetworkBlock(n_input::Integer, n_output::Integer = 1; kwargs...)
     NeuralNetworkBlock(; n_input, n_output, kwargs...)
 end
 
@@ -59,13 +59,13 @@ function lazyconvert(T, x::Symbolics.Arr)
 end
 
 """
-    SymbolicNeuralNetwork(; n_input = 1, n_output = 1,
+    SymbolicNeuralNetwork(; n_input::Integer = 1, n_output::Integer = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0),
+        rng::AbstractRNG = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
-        nn_name =  :NN,
-        nn_p_name = :p,
-        eltype = Float64)
+        nn_name::Symbol = :NN,
+        nn_p_name::Symbol = :p,
+        eltype::Type{<:Number} = Float64)
 
 Create symbolic parameter for a neural network and one for its parameters.
 Example:
@@ -96,13 +96,13 @@ where `sys` is a system (e.g. `ODESystem`) that contains `NN`, `input` is a vect
 
 To get the underlying Lux model you can use `get_network(defaults(sys)[sys.NN])` or
 """
-function SymbolicNeuralNetwork(; n_input = 1, n_output = 1,
+function SymbolicNeuralNetwork(; n_input::Integer = 1, n_output::Integer = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
-        rng = Xoshiro(0),
+        rng::AbstractRNG = Xoshiro(0),
         init_params = Lux.initialparameters(rng, chain),
-        nn_name = :NN,
-        nn_p_name = :p,
-        eltype = Float64)
+        nn_name::Symbol = :NN,
+        nn_p_name::Symbol = :p,
+        eltype::Type{<:Number} = Float64)
     ca = ComponentArray{eltype}(init_params)
     wrapper = StatelessApplyWrapper(chain, typeof(ca))
 
