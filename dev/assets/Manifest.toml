@@ -194,9 +194,9 @@ version = "1.9.3"
 
 [[deps.BracketingNonlinearSolve]]
 deps = ["CommonSolve", "ConcreteStructs", "NonlinearSolveBase", "PrecompileTools", "Reexport", "SciMLBase"]
-git-tree-sha1 = "96ee7f4f14b56ae718664af4ba665d83868a942b"
+git-tree-sha1 = "750f782fcc7e09283be7d8a7aa687a95e4911b60"
 uuid = "70df07ce-3d50-431d-a3e7-ca6ddb60ac1e"
-version = "1.6.1"
+version = "1.6.2"
 weakdeps = ["ChainRulesCore", "ForwardDiff"]
 
     [deps.BracketingNonlinearSolve.extensions]
@@ -586,9 +586,9 @@ version = "1.11.0"
 
 [[deps.Distributions]]
 deps = ["AliasTables", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "3bc002af51045ca3b47d2e1787d6ce02e68b943a"
+git-tree-sha1 = "fbcc7610f6d8348428f722ecbe0e6cfe22e672c6"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.122"
+version = "0.25.123"
 
     [deps.Distributions.extensions]
     DistributionsChainRulesCoreExt = "ChainRulesCore"
@@ -687,9 +687,9 @@ version = "1.0.5"
 
 [[deps.Enzyme]]
 deps = ["CEnum", "EnzymeCore", "Enzyme_jll", "GPUCompiler", "InteractiveUtils", "LLVM", "Libdl", "LinearAlgebra", "ObjectFile", "PrecompileTools", "Preferences", "Printf", "Random", "SparseArrays"]
-git-tree-sha1 = "da0bc9ff2bb866062ea257cae9fead14165e871c"
+git-tree-sha1 = "d62933950a87dd9f778383b23b927b28c4c0e154"
 uuid = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-version = "0.13.111"
+version = "0.13.112"
 
     [deps.Enzyme.extensions]
     EnzymeBFloat16sExt = "BFloat16s"
@@ -719,9 +719,9 @@ weakdeps = ["Adapt"]
 
 [[deps.Enzyme_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "0dbfee9f67e994f77099c86676ccc9d95d54f736"
+git-tree-sha1 = "6edb84278db0af4ff62cbc57d6062b9b62a096a1"
 uuid = "7cc45869-7501-5eee-bdea-0790c847d4ef"
-version = "0.0.231+0"
+version = "0.0.234+0"
 
 [[deps.EpollShim_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1985,9 +1985,9 @@ version = "0.3.15"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "c392fc5dd032381919e3b22dd32d6443760ce7ea"
+git-tree-sha1 = "39a11854f0cba27aa41efaedf43c77c5daa6be51"
 uuid = "91d4177d-7536-5919-b921-800302f37372"
-version = "1.5.2+0"
+version = "1.6.0+0"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "05868e21324cede2207c6f0f466b4bfef6d5e7ee"
