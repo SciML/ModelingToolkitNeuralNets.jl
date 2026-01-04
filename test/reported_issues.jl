@@ -13,8 +13,9 @@ using OrdinaryDiffEqVerner
     )
 
     sym_nn,
-    θ = SymbolicNeuralNetwork(;
-        nn_p_name = :θ, chain, n_input = 1, n_output = 1, rng = StableRNG(42))
+        θ = SymbolicNeuralNetwork(;
+        nn_p_name = :θ, chain, n_input = 1, n_output = 1, rng = StableRNG(42)
+    )
 
     # Test that scalar dispatch works (fix for issue #83)
     # Previously required: sym_nn([Y], θ)[1]
@@ -22,7 +23,7 @@ using OrdinaryDiffEqVerner
     Dt = ModelingToolkit.D_nounits
     eqs_ude = [
         Dt(X) ~ sym_nn(Y, θ)[1] - d * X,
-        Dt(Y) ~ X - d * Y
+        Dt(Y) ~ X - d * Y,
     ]
 
     @named sys = System(eqs_ude, ModelingToolkit.t_nounits)
@@ -35,14 +36,14 @@ using OrdinaryDiffEqVerner
         (0.0, 1.0)
     )
 
-    sol = solve(prob, Vern9(), abstol = 1e-8, reltol = 1e-8)
+    sol = solve(prob, Vern9(), abstol = 1.0e-8, reltol = 1.0e-8)
 
     @test SciMLBase.successful_retcode(sol)
 
     # Also test that the old array syntax still works
     eqs_ude_old = [
         Dt(X) ~ sym_nn([Y], θ)[1] - d * X,
-        Dt(Y) ~ X - d * Y
+        Dt(Y) ~ X - d * Y,
     ]
 
     @named sys_old = System(eqs_ude_old, ModelingToolkit.t_nounits)
@@ -54,7 +55,7 @@ using OrdinaryDiffEqVerner
         (0.0, 1.0)
     )
 
-    sol_old = solve(prob_old, Vern9(), abstol = 1e-8, reltol = 1e-8)
+    sol_old = solve(prob_old, Vern9(), abstol = 1.0e-8, reltol = 1.0e-8)
 
     @test SciMLBase.successful_retcode(sol_old)
 
@@ -80,8 +81,9 @@ end
     nn_name = :custom_nn_name
     nn_p_name = :custom_nn_p_name
     NN, NN_p = SymbolicNeuralNetwork(;
-        chain, n_input = 1, n_output = 1, rng, nn_name, nn_p_name)
+        chain, n_input = 1, n_output = 1, rng, nn_name, nn_p_name
+    )
 
-    @test ModelingToolkit.getname(NN)==nn_name broken=true # :nn_name # Should be :custom_nn_name
+    @test ModelingToolkit.getname(NN) == nn_name broken = true # :nn_name # Should be :custom_nn_name
     @test ModelingToolkit.getname(NN_p) == nn_p_name
 end

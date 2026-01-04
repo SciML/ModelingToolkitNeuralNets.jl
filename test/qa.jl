@@ -3,7 +3,7 @@ using ModelingToolkitNeuralNets
 using Aqua
 using JET
 
-@testset verbose=true "Code quality (Aqua.jl)" begin
+@testset verbose = true "Code quality (Aqua.jl)" begin
     Aqua.find_persistent_tasks_deps(ModelingToolkitNeuralNets)
     Aqua.test_ambiguities(ModelingToolkitNeuralNets, recursive = false)
     Aqua.test_deps_compat(ModelingToolkitNeuralNets)
