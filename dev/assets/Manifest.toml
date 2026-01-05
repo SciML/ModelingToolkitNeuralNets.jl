@@ -1742,7 +1742,7 @@ version = "10.31.2"
 
 [[deps.ModelingToolkitNeuralNets]]
 deps = ["ComponentArrays", "IntervalSets", "Lux", "LuxCore", "ModelingToolkit", "Random", "Symbolics"]
-path = "/home/runner/work/ModelingToolkitNeuralNets.jl/ModelingToolkitNeuralNets.jl"
+path = "/home/chrisrackauckas/github-runners/deepsea3-11/_work/ModelingToolkitNeuralNets.jl/ModelingToolkitNeuralNets.jl"
 uuid = "f162e290-f571-43a6-83d9-22ecc16da15f"
 version = "2.2.0"
 
