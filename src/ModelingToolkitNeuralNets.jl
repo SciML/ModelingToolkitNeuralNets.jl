@@ -2,7 +2,7 @@ module ModelingToolkitNeuralNets
 
 using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits
 using IntervalSets: var".."
-using Symbolics: Symbolics, @register_array_symbolic, @wrapped
+using Symbolics: Symbolics, @register_array_symbolic, @wrapped, unwrap, wrap, shape
 using LuxCore: stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
@@ -58,7 +58,7 @@ function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
 end
 
 function lazyconvert(T, x::Symbolics.Arr)
-    return Symbolics.array_term(convert, T, x, size = size(x))
+    return wrap(Symbolics.term(convert, T, unwrap(x); type = Symbolics.getdefaultval(T), shape = shape(x)))
 end
 
 """
