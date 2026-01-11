@@ -23,6 +23,8 @@ let
     end
 end
 
+
+
 # Checks that symbolic networks declared with/without the macro are identical (1).
 let
     # Declares the neural networks.
@@ -42,7 +44,7 @@ let
     # Checks that the neural networks evaluates identically for some values.
     p_vals = ModelingToolkit.getdefault(θ)
     for val in [-3.12, 2, 1545.45]
-        @test ModelingToolkit.getdefault(U)(val, θ) == ModelingToolkit.getdefault(NN_func)(val, p_vals)
+        @test ModelingToolkit.getdefault(U)([val, 3val], p_vals) == ModelingToolkit.getdefault(NN_func)([val, 3val], p_vals)
     end
 end
 
