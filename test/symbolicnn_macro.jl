@@ -133,6 +133,83 @@ let
     @test ModelingToolkit.getdefault(p) == ModelingToolkit.getdefault(p_func)
 end
 
+# Checks that things work for different neural network architectures.
+let
+    # Dense
+    nn_arch = Lux.Chain(
+        Lux.Dense(2 => 3, Lux.softplus, use_bias = false),
+        Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
+        Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    Lux.Bilinear((2, 2) => 4, Lux.softplus).in1_dims
+    # Bilinear
+    nn_arch = Lux.Chain(
+        Lux.Bilinear((2, 2) => 4, Lux.softplus),
+        Lux.Bilinear((4, 2) => 4, Lux.softplus),
+        Lux.Bilinear((4, 2) => 1, Lux.softplus)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    # RNNCell
+    nn_arch = Lux.Chain(
+        Lux.RNNCell(2 => 3, Lux.softplus, use_bias = false),
+        Lux.RNNCell(3 => 3, Lux.softplus, use_bias = false),
+        Lux.RNNCell(3 => 1, Lux.softplus, use_bias = false)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    # LSTMCell
+    nn_arch = Lux.Chain(
+        Lux.LSTMCell(2 => 3, use_bias = false),
+        Lux.LSTMCell(3 => 3, use_bias = false),
+        Lux.LSTMCell(3 => 1, use_bias = false)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    # GRUCell
+    nn_arch = Lux.Chain(
+        Lux.GRUCell(2 => 3, use_bias = false),
+        Lux.GRUCell(3 => 3, use_bias = false),
+        Lux.GRUCell(3 => 1, use_bias = false)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    # Architectures with multiple layer types.
+    nn_arch = Lux.Chain(
+        Lux.GRUCell(2 => 3, use_bias = false),
+        Lux.LSTMCell(3 => 3, use_bias = false),
+        Lux.RNNCell(3 => 1, Lux.softplus, use_bias = false)
+    )
+    @SymbolicNeuralNetwork NN, p = nn_arch
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
+
+    # Checks that non-supported neural network architectures throw errors.
+    @test_throws Exception @eval @SymbolicNeuralNetwork NN, p = Lux.Chain(
+        Lux.Conv((3, 3), 1 => 8, Lux.relu; pad=1),
+        Lux.Conv((3, 3), 8 => 16, Lux.relu; pad=1),
+        Lux.Dense(28 * 28 * 16 => 10)
+    )
+end
+
 # Checks that erroneous usages of the macro are caught.
 let
     # Declares components.

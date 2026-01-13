@@ -176,6 +176,11 @@ chain = Lux.Chain(
 )
 rng = Xoshiro(0)
 @SymbolicNeuralNetwork NN, p = chain rng
+
+Notes:
+- The first layer of the chain must be one of the following types: `Lux.Dense`, `Lux.Bilinear`,
+`Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`. For other first layer types, use the `SymbolicNeuralNetwork`
+function directly.
 ```
 """
 macro SymbolicNeuralNetwork(expr::Expr)
@@ -214,7 +219,14 @@ function make_symbolic_nn_declaration(expr::Expr)
 end
 
 # Internal functions for determining the number of NN inputs and outputs.
-_num_chain_inputs(chain) = chain.layers[1].in_dims
+_num_chain_inputs(chain::Lux.Chain) = _num_layer_inputs(chain.layers[1])
+_num_chain_inputs(chain) = error("@SymbolicNeuralNetwork has been provided with an input that is not a Lux.Chain.")
+_num_layer_inputs(layer::Lux.Dense) = layer.in_dims
+_num_layer_inputs(layer::Lux.Bilinear) = layer.in1_dims + layer.in2_dims
+_num_layer_inputs(layer::Lux.RNNCell) = layer.in_dims
+_num_layer_inputs(layer::Lux.LSTMCell) = layer.in_dims
+_num_layer_inputs(layer::Lux.GRUCell) = layer.in_dims
+_num_layer_inputs(layer) = error("@SymbolicNeuralNetwork has been provided with a chain which first layer's type ($(typeof(layer))) is not supported for automatic input size detection. Please use the `SymbolicNeuralNetwork` function directly.")
 _num_chain_outputs(chain) = chain.layers[end].out_dims
 
 end
