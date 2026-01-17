@@ -1,5 +1,6 @@
 using ModelingToolkit, Symbolics
 using ModelingToolkit: t_nounits as t, D_nounits as D
+using SciCompDSL
 using OrdinaryDiffEqVerner
 using ModelingToolkitNeuralNets
 using ModelingToolkitStandardLibrary.Blocks
