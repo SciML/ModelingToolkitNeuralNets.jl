@@ -74,7 +74,7 @@ end
 
     # Default names.
     NN, NN_p = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, rng)
-    @test ModelingToolkit.getname(NN) == :nn_name
+    @test ModelingToolkit.getname(NN) == :NN
     @test ModelingToolkit.getname(NN_p) == :p
 
     # Trying to set specific names.
@@ -84,6 +84,6 @@ end
         chain, n_input = 1, n_output = 1, rng, nn_name, nn_p_name
     )
 
-    @test ModelingToolkit.getname(NN) == nn_name broken = true # :nn_name # Should be :custom_nn_name
+    @test ModelingToolkit.getname(NN) == nn_name
     @test ModelingToolkit.getname(NN_p) == nn_p_name
 end

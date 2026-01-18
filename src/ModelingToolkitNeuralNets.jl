@@ -1,8 +1,8 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkit: @parameters, @named, @variables, System, t_nounits
+using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits
 using IntervalSets: var".."
-using Symbolics: Symbolics, @register_array_symbolic, @wrapped
+using Symbolics: Symbolics, @register_array_symbolic, @wrapped, unwrap, wrap, shape
 using LuxCore: stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
@@ -35,6 +35,7 @@ function NeuralNetworkBlock(;
     @parameters p[1:length(ca)] = Vector(ca) [tunable = true]
     @parameters T::typeof(typeof(ca)) = typeof(ca) [tunable = false]
     @parameters lux_model::typeof(chain) = chain [tunable = false]
+    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable=false]
 
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
@@ -43,10 +44,10 @@ function NeuralNetworkBlock(;
     msg = "The outputsize of the given Lux network ($expected_outsz) does not match `n_output = $n_output`"
     @assert n_output == expected_outsz msg
 
-    eqs = [outputs ~ stateless_apply(lux_model, inputs, lazyconvert(T, p))]
+    eqs = [outputs ~ lux_apply(lux_model, inputs, lazyconvert(T, p))]
 
     ude_comp = System(
-        eqs, t_nounits, [inputs, outputs], [lux_model, p, T]; name
+        eqs, t_nounits, [inputs, outputs], [lux_apply, lux_model, p, T]; name
     )
     return ude_comp
 end
@@ -58,7 +59,7 @@ function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
 end
 
 function lazyconvert(T, x::Symbolics.Arr)
-    return Symbolics.array_term(convert, T, x, size = size(x))
+    return wrap(Symbolics.term(convert, T, unwrap(x); type = Symbolics.getdefaultval(T), shape = shape(x)))
 end
 
 """
