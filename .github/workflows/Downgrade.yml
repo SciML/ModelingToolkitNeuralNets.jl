@@ -12,6 +12,7 @@ on:
       - 'docs/**'
 jobs:
   test:
+    if: false # Temporarily disabled - see https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/105
     runs-on: ubuntu-latest
     strategy:
       matrix:

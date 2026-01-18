@@ -49,7 +49,7 @@ end
 
 rbf(x) = exp.(-(x .^ 2))
 
-chain = multi_layer_feed_forward(2, 2, width=5, initial_scaling_factor=1)
+chain = multi_layer_feed_forward(2, 2, width = 5, initial_scaling_factor = 1)
 ude_sys = lotka_ude(chain)
 
 sys = mtkcompile(ude_sys)
@@ -59,29 +59,33 @@ sys = mtkcompile(ude_sys)
 model_true = mtkcompile(lotka_true())
 # prob_true = ODEProblem{true, SciMLBase.FullSpecialize}(model_true, [], (0, 5.0))
 
-function generate_noisy_data(model, tspan = (0.0, 1.0), n = 5;
+function generate_noisy_data(
+        model, tspan = (0.0, 1.0), n = 5;
         params = [],
         u0 = [],
         rng = StableRNG(1111),
-        kwargs...)
+        kwargs...
+    )
     prob = ODEProblem(model, Dict([u0; params]), tspan)
     prob = remake(prob, u0 = 5.0f0 * rand(rng, length(prob.u0)))
     saveat = range(prob.tspan..., length = n)
     sol = solve(prob; saveat, kwargs...)
     X = Array(sol)
     x̄ = mean(X, dims = 2)
-    noise_magnitude = 5e-3
+    noise_magnitude = 5.0e-3
     Xₙ = X .+ (noise_magnitude * x̄) .* randn(rng, eltype(X), size(X))
     return Xₙ
 end
 
 ts = range(0, 5.0, length = 21)
-data = generate_noisy_data(model_true, (0., 5), 21; alg = Vern9(), abstol = 1e-12, reltol = 1e-12)
+data = generate_noisy_data(model_true, (0.0, 5), 21; alg = Vern9(), abstol = 1.0e-12, reltol = 1.0e-12)
 
-prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys, [
-    sys.x=>data[variable_index(model_true, model_true.x), 1],
-    sys.y=>data[variable_index(model_true, model_true.y), 1],
-    ], (0, 5.0))
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(
+    sys, [
+        sys.x => data[variable_index(model_true, model_true.x), 1],
+        sys.y => data[variable_index(model_true, model_true.y), 1],
+    ], (0, 5.0)
+)
 
 x0 = default_values(sys)[sys.nn.p]
 
@@ -115,8 +119,8 @@ ps = (prob, get_vars, data, ts, set_x);
 @test all(.!isnan.(∇l1))
 @test !iszero(∇l1)
 
-@test ∇l1 ≈ ∇l2 rtol = 1.0e-4 broken-=true
-@test ∇l1 ≈ ∇l3 broken=true
+@test ∇l1 ≈ ∇l2 rtol = 1.0e-4 broken -= true
+@test ∇l1 ≈ ∇l3 broken = true
 
 op = OptimizationProblem(of, x0, ps)
 
@@ -135,9 +139,9 @@ op = OptimizationProblem(of, x0, ps)
 #     false
 # end
 
-res = solve(op, Adam(1.0e-3), maxiters = 10_000)#, callback = plot_cb)
-op2 = remake(op, u0=res.u)
-res2 = solve(op2, LBFGS(), maxiters=5000)#, callback = plot_cb, verbose=true)
+res = solve(op, Adam(1.0e-3), maxiters = 10_000) #, callback = plot_cb)
+op2 = remake(op, u0 = res.u)
+res2 = solve(op2, LBFGS(), maxiters = 5000) #, callback = plot_cb, verbose=true)
 
 
 display(res2.stats)
@@ -174,10 +178,12 @@ sys2 = mtkcompile(lotka_ude2())
 
 x0 = default_values(sys2)[sys2.p]
 
-prob = ODEProblem{true, SciMLBase.FullSpecialize}(sys2, [
-    sys2.x=>data[variable_index(model_true, model_true.x), 1],
-    sys2.y=>data[variable_index(model_true, model_true.y), 1],
-    ], (0, 5.0))
+prob = ODEProblem{true, SciMLBase.FullSpecialize}(
+    sys2, [
+        sys2.x => data[variable_index(model_true, model_true.x), 1],
+        sys2.y => data[variable_index(model_true, model_true.y), 1],
+    ], (0, 5.0)
+)
 
 sol = solve(prob, Vern9(), abstol = 1.0e-10, reltol = 1.0e-8)
 
@@ -190,7 +196,7 @@ ps2 = (prob, get_vars2, data, ts, set_x2);
 op_2 = OptimizationProblem(of, x0, ps2)
 
 res_2 = solve(op_2, Adam(1.0e-3), maxiters = 10_000)
-op3 = remake(op_2, u0=res_2.u)
-res3 = solve(op3, LBFGS(), maxiters=5000)
+op3 = remake(op_2, u0 = res_2.u)
+res3 = solve(op3, LBFGS(), maxiters = 5000)
 
 @test res2.u ≈ res3.u

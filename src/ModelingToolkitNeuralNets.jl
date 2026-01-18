@@ -35,7 +35,7 @@ function NeuralNetworkBlock(;
     @parameters p[1:length(ca)] = Vector(ca) [tunable = true]
     @parameters T::typeof(typeof(ca)) = typeof(ca) [tunable = false]
     @parameters lux_model::typeof(chain) = chain [tunable = false]
-    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable=false]
+    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false]
 
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
