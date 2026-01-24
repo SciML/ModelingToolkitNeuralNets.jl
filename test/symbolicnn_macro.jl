@@ -143,7 +143,7 @@ let
         Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
     )
     @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
+    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 1, nn_name = :NN, nn_p_name = :p)
     @test isequal(NN, NN_func)
     @test isequal(p, p_func)
 

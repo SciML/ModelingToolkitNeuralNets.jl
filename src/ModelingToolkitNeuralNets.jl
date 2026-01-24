@@ -179,7 +179,7 @@ rng = Xoshiro(0)
 @SymbolicNeuralNetwork NN, p = chain rng
 ```
 Notes:
-- The first layer of the chain must be one of the following types: `Lux.Dense`. For other first 
+- The first and last layers of the chain must be one of the following types: `Lux.Dense`. For other first 
 layer types, use the `SymbolicNeuralNetwork`
 - Types that are intended to be supported in the first layer in future updates include `Lux.Bilinear`,
 `Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`.
@@ -224,7 +224,9 @@ _num_chain_inputs(chain::Lux.Chain) = _num_layer_inputs(chain.layers[1])
 _num_chain_inputs(chain) = error("@SymbolicNeuralNetwork has been provided with an input that is not a Lux.Chain.")
 _num_layer_inputs(layer::Lux.Dense) = layer.in_dims
 _num_layer_inputs(layer) = error("@SymbolicNeuralNetwork has been provided with a chain which first layer's type ($(typeof(layer))) is not supported for automatic input size detection. Please use the `SymbolicNeuralNetwork` function directly.")
-_num_chain_outputs(chain) = chain.layers[end].out_dims
+_num_chain_outputs(chain::Lux.Chain) = _num_layer_outputs(chain.layers[end])
+_num_layer_outputs(layer::Lux.Dense) = layer.out_dims
+_num_layer_outputs(layer) = error("@SymbolicNeuralNetwork has been provided with a chain which last layer's type ($(typeof(layer))) is not supported for automatic output size detection. Please use the `SymbolicNeuralNetwork` function directly.")
 
 # Layer types that can potentially be supported in the future.
 # _num_layer_inputs(layer::Lux.Bilinear) = layer.in1_dims + layer.in2_dims
