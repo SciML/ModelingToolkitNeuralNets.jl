@@ -105,13 +105,13 @@ let
     @mtkcompile sys_func = System(eqs_func, t)
 
     # Checks that they are identical.
-    @test_broken isequal(sys_macro.NN, sys_func.NN) # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/102
+    @test isequal(sys_macro.NN, sys_func.NN) # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/102
     @test isequal(sys_macro.p, sys_func.p)
 
     # Checks that the neural networks evaluates identically for some values.
     p_vals = ModelingToolkit.getdefault(sys_macro.p)
     for val in [-3.12, 2, 1545.45]
-        @test_broken ModelingToolkit.getdefault(sys_macro.NN)(val, p_vals) == ModelingToolkit.getdefault(sys_func.NN)(val, p_vals) # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/102
+        @test ModelingToolkit.getdefault(sys_macro.NN)(val, p_vals) == ModelingToolkit.getdefault(sys_func.NN)(val, p_vals) # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/102
     end
 end
 
