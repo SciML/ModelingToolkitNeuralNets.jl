@@ -177,12 +177,12 @@ chain = Lux.Chain(
 )
 rng = Xoshiro(0)
 @SymbolicNeuralNetwork NN, p = chain rng
-
-Notes:
-- The first layer of the chain must be one of the following types: `Lux.Dense`, `Lux.Bilinear`,
-`Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`. For other first layer types, use the `SymbolicNeuralNetwork`
-function directly.
 ```
+Notes:
+- The first layer of the chain must be one of the following types: `Lux.Dense`. For other first 
+layer types, use the `SymbolicNeuralNetwork`
+- Types that are intended to be supported in the first layer in future updates include `Lux.Bilinear`,
+`Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`.
 """
 macro SymbolicNeuralNetwork(expr::Expr)
     return esc(make_symbolic_nn_declaration(expr))
@@ -192,7 +192,7 @@ end
 function make_symbolic_nn_declaration(expr::Expr)
     # Error checks.
     if !(Meta.isexpr(expr, :(=)) && Meta.isexpr(expr.args[1], :tuple))
-        error("@SymbolicNeuralNetwork input ($expr) is poorly erroneously formatted.")
+        error("@SymbolicNeuralNetwork input ($expr) is erroneously formatted.")
     end
     if length(expr.args[1].args) != 2
         error("@SymbolicNeuralNetwork must have exactly two arguments on the left-hand side. Here, $(length(expr.args[1].args)) arguments were provided.")
@@ -223,11 +223,13 @@ end
 _num_chain_inputs(chain::Lux.Chain) = _num_layer_inputs(chain.layers[1])
 _num_chain_inputs(chain) = error("@SymbolicNeuralNetwork has been provided with an input that is not a Lux.Chain.")
 _num_layer_inputs(layer::Lux.Dense) = layer.in_dims
-_num_layer_inputs(layer::Lux.Bilinear) = layer.in1_dims + layer.in2_dims
-_num_layer_inputs(layer::Lux.RNNCell) = layer.in_dims
-_num_layer_inputs(layer::Lux.LSTMCell) = layer.in_dims
-_num_layer_inputs(layer::Lux.GRUCell) = layer.in_dims
 _num_layer_inputs(layer) = error("@SymbolicNeuralNetwork has been provided with a chain which first layer's type ($(typeof(layer))) is not supported for automatic input size detection. Please use the `SymbolicNeuralNetwork` function directly.")
 _num_chain_outputs(chain) = chain.layers[end].out_dims
+
+# Layer types that can potentially be supported in the future.
+# _num_layer_inputs(layer::Lux.Bilinear) = layer.in1_dims + layer.in2_dims
+# _num_layer_inputs(layer::Lux.RNNCell) = layer.in_dims
+# _num_layer_inputs(layer::Lux.LSTMCell) = layer.in_dims
+# _num_layer_inputs(layer::Lux.GRUCell) = layer.in_dims
 
 end

@@ -13,8 +13,8 @@ let
     NN_func, p_func = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, nn_name = :NN, nn_p_name = :p)
 
     # Checks that they are identical.
-    isequal(NN, NN_func)
-    isequal(p, p_func)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
 
     # Checks that the neural networks evaluates identically for some values.
     p_vals = ModelingToolkit.getdefault(p)
@@ -38,8 +38,8 @@ let
     NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :U, nn_p_name = :θ)
 
     # Checks that they are identical.
-    isequal(U, NN_func)
-    isequal(θ, p_func)
+    @test isequal(U, NN_func)
+    @test isequal(θ, p_func)
 
     # Checks that the neural networks evaluates identically for some values.
     p_vals = ModelingToolkit.getdefault(θ)
@@ -64,8 +64,8 @@ let
     NN_func, p_func = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, nn_name = :NN, nn_p_name = :p)
 
     # Checks that they are identical.
-    isequal(NN, NN_func)
-    isequal(p, p_func)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
 
     # Checks that the neural networks evaluates identically for some values.
     p_vals = ModelingToolkit.getdefault(p)
@@ -87,8 +87,8 @@ let
     NN_func, p_func = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, nn_name = :NN, nn_p_name = :p)
 
         # Checks that they are identical.
-    isequal(NN, NN_func)
-    isequal(p, p_func)
+    @test isequal(NN, NN_func)
+    @test isequal(p, p_func)
 
     # Creates corresponding MTK models.
     @variables X(t) Y(t)
@@ -134,68 +134,13 @@ let
 end
 
 # Checks that things work for different neural network architectures.
+# Right now only `Dense` is supported. See original PR for partial implementation of tests for other architectures.
 let
     # Dense
     nn_arch = Lux.Chain(
         Lux.Dense(2 => 3, Lux.softplus, use_bias = false),
         Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
         Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
-    )
-    @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
-    @test isequal(NN, NN_func)
-    @test isequal(p, p_func)
-
-    Lux.Bilinear((2, 2) => 4, Lux.softplus).in1_dims
-    # Bilinear
-    nn_arch = Lux.Chain(
-        Lux.Bilinear((2, 2) => 4, Lux.softplus),
-        Lux.Bilinear((4, 2) => 4, Lux.softplus),
-        Lux.Bilinear((4, 2) => 1, Lux.softplus)
-    )
-    @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
-    @test isequal(NN, NN_func)
-    @test isequal(p, p_func)
-
-    # RNNCell
-    nn_arch = Lux.Chain(
-        Lux.RNNCell(2 => 3, Lux.softplus, use_bias = false),
-        Lux.RNNCell(3 => 3, Lux.softplus, use_bias = false),
-        Lux.RNNCell(3 => 1, Lux.softplus, use_bias = false)
-    )
-    @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
-    @test isequal(NN, NN_func)
-    @test isequal(p, p_func)
-
-    # LSTMCell
-    nn_arch = Lux.Chain(
-        Lux.LSTMCell(2 => 3, use_bias = false),
-        Lux.LSTMCell(3 => 3, use_bias = false),
-        Lux.LSTMCell(3 => 1, use_bias = false)
-    )
-    @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
-    @test isequal(NN, NN_func)
-    @test isequal(p, p_func)
-
-    # GRUCell
-    nn_arch = Lux.Chain(
-        Lux.GRUCell(2 => 3, use_bias = false),
-        Lux.GRUCell(3 => 3, use_bias = false),
-        Lux.GRUCell(3 => 1, use_bias = false)
-    )
-    @SymbolicNeuralNetwork NN, p = nn_arch
-    NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
-    @test isequal(NN, NN_func)
-    @test isequal(p, p_func)
-
-    # Architectures with multiple layer types.
-    nn_arch = Lux.Chain(
-        Lux.GRUCell(2 => 3, use_bias = false),
-        Lux.LSTMCell(3 => 3, use_bias = false),
-        Lux.RNNCell(3 => 1, Lux.softplus, use_bias = false)
     )
     @SymbolicNeuralNetwork NN, p = nn_arch
     NN_func, p_func = SymbolicNeuralNetwork(; chain = nn_arch, n_input = 2, n_output = 3, nn_name = :NN, nn_p_name = :p)
