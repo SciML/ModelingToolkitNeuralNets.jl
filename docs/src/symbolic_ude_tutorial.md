@@ -55,11 +55,9 @@ nn_arch = Lux.Chain(
 ```
 
 Next, we can use [ModelingToolkitNeuralNets.jl](https://github.com/SciML/ModelingToolkitNeuralNets.jl) to turn our neural network to a Symbolic neural network representation (which can later be inserted into an ModelingToolkit model).
-
 ```@example symbolic_ude
 using ModelingToolkitNeuralNets
-sym_nn,
-θ = SymbolicNeuralNetwork(; nn_p_name = :θ, chain = nn_arch, n_input = 1, n_output = 1)
+@SymbolicNeuralNetwork sym_nn, θ = nn_arch
 sym_nn_func(x) = sym_nn(x, θ)[1]
 ```
 
