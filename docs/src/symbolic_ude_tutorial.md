@@ -108,7 +108,7 @@ By plotting a simulation from our fitted UDE, we can confirm that it can reprodu
 ```@example symbolic_ude
 oprob_fitted = remake(oprob_base; p = set_ps(oprob_base, opt_sol.u))
 sol_fitted = solve(oprob_fitted, Tsit5())
-plot!(sol_true; lw = 4, la = 0.7, linestyle = :dash, idxs = [X, Y], color = [:blue :red],
+plot!(sol_fitted; lw = 4, la = 0.7, linestyle = :dash, idxs = [X, Y], color = [:blue :red],
     label = ["X (UDE)" "Y (UDE)"])
 ```
 
