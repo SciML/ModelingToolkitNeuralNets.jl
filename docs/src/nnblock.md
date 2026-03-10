@@ -40,51 +40,56 @@ using SciMLBase
 
 input_f(t) = (1+sin(0.005 * t^2))/2
 
-@mtkmodel PotWithPlate begin
+function PotWithPlate(; name)
     @parameters begin
         C1 = 1
         C2 = 15
     end
-    @components begin
-        input = Blocks.TimeVaryingFunction(f = input_f)
-        source = PrescribedHeatFlow(T_ref = 373.15)
-        plate = HeatCapacitor(C = C1, T = 273.15)
-        pot = HeatCapacitor(C = C2, T = 273.15)
-        conduction = ThermalConductor(G = 1)
-        air = ThermalConductor(G = 0.1)
-        env = FixedTemperature(T = 293.15)
-        Tsensor = TemperatureSensor()
-    end
-    @equations begin
-        connect(input.output, :u, source.Q_flow)
-        connect(source.port, plate.port)
-        connect(plate.port, conduction.port_a)
-        connect(conduction.port_b, pot.port)
-        connect(pot.port, air.port_a)
-        connect(air.port_b, env.port)
-        connect(pot.port, Tsensor.port)
-    end
+    
+    @named input = Blocks.TimeVaryingFunction(f = input_f)
+    @named source = PrescribedHeatFlow(T_ref = 373.15)
+    @named plate = HeatCapacitor(C = C1, T = 273.15)
+    @named pot = HeatCapacitor(C = C2, T = 273.15)
+    @named conduction = ThermalConductor(G = 1)
+    @named air = ThermalConductor(G = 0.1)
+    @named env = FixedTemperature(T = 293.15)
+    @named Tsensor = TemperatureSensor()
+
+    eqs = [
+        connect(input.output, :u, source.Q_flow),
+        connect(source.port, plate.port),
+        connect(plate.port, conduction.port_a),
+        connect(conduction.port_b, pot.port),
+        connect(pot.port, air.port_a),
+        connect(air.port_b, env.port),
+        connect(pot.port, Tsensor.port),
+    ]
+    
+    System(eqs, t, [], [C1, C2]; name, systems = [input, source, plate, conduction, pot, air, env, Tsensor])
 end
-@mtkmodel SimplePot begin
+function SimplePot(; name)
     @parameters begin
         C2 = 15
     end
-    @components begin
-        input = Blocks.TimeVaryingFunction(f = input_f)
-        source = PrescribedHeatFlow(T_ref = 373.15)
-        pot = HeatCapacitor(C = C2, T = 273.15)
-        air = ThermalConductor(G = 0.1)
-        env = FixedTemperature(T = 293.15)
-        Tsensor = TemperatureSensor()
-    end
-    @equations begin
+
+    @named input = Blocks.TimeVaryingFunction(f = input_f)
+    @named source = PrescribedHeatFlow(T_ref = 373.15)
+    @named pot = HeatCapacitor(C = C2, T = 273.15)
+    @named air = ThermalConductor(G = 0.1)
+    @named env = FixedTemperature(T = 293.15)
+    @named Tsensor = TemperatureSensor()
+
+    eqs = [
         connect(input.output, :u, source.Q_flow)
         connect(source.port, pot.port)
         connect(pot.port, Tsensor.port)
         connect(pot.port, air.port_a)
         connect(air.port_b, env.port)
-    end
+    ]
+
+    System(eqs, t, [], [C2]; name, systems = [input, source, pot, air, env, Tsensor])
 end
+
 @mtkcompile sys1 = PotWithPlate()
 @mtkcompile sys2 = SimplePot()
 
@@ -124,18 +129,16 @@ that would be too large for the chosen activation function. The chosen activatio
 always output positive numbers for positive inputs, so this also makes physical sense for out component.
 
 ```@example potplate
-@mtkmodel ThermalNN begin
-    begin
-        n_input = 2
-        n_output = 1
-        chain = multi_layer_feed_forward(;
-            n_input, n_output, depth = 1, width = 4, activation = Lux.swish)
-    end
-    @components begin
-        port_a = HeatPort()
-        port_b = HeatPort()
-        nn = NeuralNetworkBlock(; n_input, n_output, chain, rng = StableRNG(1337))
-    end
+function ThermalNN(; name)
+    n_input = 2
+    n_output = 1
+    chain = multi_layer_feed_forward(;
+        n_input, n_output, depth = 1, width = 4, activation = Lux.swish)
+
+    @named port_a = HeatPort()
+    @named port_b = HeatPort()
+    @named nn = NeuralNetworkBlock(; n_input, n_output, chain, rng = StableRNG(1337))
+
     @parameters begin
         T0 = 273.15
         T_range = 10
@@ -146,7 +149,8 @@ always output positive numbers for positive inputs, so this also makes physical 
         Q_flow(t), [guess = 0.0]
         x(t) = T0
     end
-    @equations begin
+
+    eqs = [
         dT ~ port_a.T - port_b.T
         port_a.Q_flow ~ Q_flow
         C1*D(x) ~ Q_flow - nn.outputs[1]
@@ -154,30 +158,34 @@ always output positive numbers for positive inputs, so this also makes physical 
         nn.outputs[1] + port_b.Q_flow ~ 0
         nn.inputs[1] ~ (x - T0) / T_range
         nn.inputs[2] ~ (port_b.T - T0) / T_range
-    end
+    ]
+
+    System(eqs, t; name, systems = [port_a, port_b, nn])
 end
 
-@mtkmodel NeuralPot begin
+function NeuralPot(; name)
     @parameters begin
         C2 = 15
     end
-    @components begin
-        input = Blocks.TimeVaryingFunction(f = input_f)
-        source = PrescribedHeatFlow(T_ref = 373.15)
-        pot = HeatCapacitor(C = C2, T = 273.15)
-        air = ThermalConductor(G = 0.1)
-        env = FixedTemperature(T = 293.15)
-        Tsensor = TemperatureSensor()
-        thermal_nn = ThermalNN()
-    end
-    @equations begin
+
+    @named input = Blocks.TimeVaryingFunction(f = input_f)
+    @named source = PrescribedHeatFlow(T_ref = 373.15)
+    @named pot = HeatCapacitor(C = C2, T = 273.15)
+    @named air = ThermalConductor(G = 0.1)
+    @named env = FixedTemperature(T = 293.15)
+    @named Tsensor = TemperatureSensor()
+    @named thermal_nn = ThermalNN()
+
+    eqs = [
         connect(input.output, :u, source.Q_flow)
         connect(pot.port, Tsensor.port)
         connect(pot.port, air.port_a)
         connect(air.port_b, env.port)
         connect(source.port, thermal_nn.port_a)
         connect(thermal_nn.port_b, pot.port)
-    end
+    ]
+
+    System(eqs, t, [], [C2]; name, systems = [input, source, pot, air, env, Tsensor, thermal_nn])
 end
 
 @named model = NeuralPot()
