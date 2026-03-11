@@ -5,4 +5,6 @@
 /Manifest-v*.toml
 /docs/Manifest.toml
 /docs/build/
+/docs/src/assets/Project.toml
+/docs/src/assets/Manifest.toml
 .vscode
