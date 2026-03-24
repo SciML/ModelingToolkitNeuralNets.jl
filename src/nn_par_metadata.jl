@@ -9,6 +9,15 @@ Symbolics.option_to_metadata_type(::Val{:neuralnetworkps}) = NeuralNetworkParame
     ModelingToolkitNeuralNets.isneuralnetwork(p)
 
 Returns `true` if the parameter corresponds to the neural network chain that is saved as a MTK parameter.
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.isneuralnetwork(d) # false
+ModelingToolkitNeuralNets.isneuralnetwork(NN) # true
+ModelingToolkitNeuralNets.isneuralnetwork(θ) # false
+````
 """
 isneuralnetwork(p::Union{Symbolics.Num, AbstractVector{Symbolics.Num}}) = isneuralnetwork(Symbolics.value(p))
 function isneuralnetwork(p)
@@ -19,6 +28,15 @@ end
     ModelingToolkitNeuralNets.isneuralnetworkps(p)
 
 Returns `true` if the parameter corresponds to the a neural network parametrisation.
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.isneuralnetworkps(d) # false
+ModelingToolkitNeuralNets.isneuralnetworkps(NN) # false
+ModelingToolkitNeuralNets.isneuralnetworkps(θ) # true
+````
 """
 isneuralnetworkps(p::Union{Symbolics.Num, AbstractVector{Symbolics.Num}}) = isneuralnetworkps(Symbolics.value(p))
 function isneuralnetworkps(p)
