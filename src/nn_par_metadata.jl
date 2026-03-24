@@ -19,8 +19,8 @@ ModelingToolkitNeuralNets.isneuralnetwork(NN) # true
 ModelingToolkitNeuralNets.isneuralnetwork(θ) # false
 ````
 """
-isneuralnetwork(p::Union{Symbolics.Num, AbstractVector{Symbolics.Num}}) = isneuralnetwork(Symbolics.value(p))
-function isneuralnetwork(p)
+isneuralnetwork(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetwork(Symbolics.unwrap(p))
+function isneuralnetwork(p::Symbolics.SymbolicT)
     getmetadata(p, NeuralNetworkParameter, false)
 end
 
