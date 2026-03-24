@@ -38,7 +38,7 @@ ModelingToolkitNeuralNets.isneuralnetworkps(NN) # false
 ModelingToolkitNeuralNets.isneuralnetworkps(θ) # true
 ````
 """
-isneuralnetworkps(p::Union{Symbolics.Num, AbstractVector{Symbolics.Num}}) = isneuralnetworkps(Symbolics.value(p))
-function isneuralnetworkps(p)
+isneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetworkps(Symbolics.unwrap(p))
+function isneuralnetworkps(p::Symbolics.SymbolicT)
     getmetadata(p, NeuralNetworkParametrisation, false)
 end
