@@ -4,7 +4,7 @@ struct NeuralNetworkParametrisation end
 Symbolics.option_to_metadata_type(::Val{:neuralnetwork}) = NeuralNetworkParameter
 Symbolics.option_to_metadata_type(::Val{:neuralnetworkps}) = NeuralNetworkParametrisation
 
-# Defines metadata getters.
+### Defines Metadata Getters ###
 """
     ModelingToolkitNeuralNets.isneuralnetwork(p)
 
@@ -25,6 +25,25 @@ function isneuralnetwork(p::Symbolics.SymbolicT)
 end
 
 """
+    ModelingToolkitNeuralNets.hasneuralnetwork(p)
+
+Returns `true` if the parameter has the `neuralnetwork` metadata set (whenever the value is `true` or `false`).
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.hasneuralnetwork(d) # false
+ModelingToolkitNeuralNets.hasneuralnetwork(NN) # true
+ModelingToolkitNeuralNets.hasneuralnetwork(θ) # false
+````
+"""
+hasneuralnetwork(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = hasneuralnetwork(Symbolics.unwrap(p))
+function hasneuralnetwork(p::Symbolics.SymbolicT)
+    hasmetadata(p, NeuralNetworkParameter)
+end
+
+"""
     ModelingToolkitNeuralNets.isneuralnetworkps(p)
 
 Returns `true` if the parameter corresponds to the a neural network parametrisation.
@@ -41,4 +60,23 @@ ModelingToolkitNeuralNets.isneuralnetworkps(θ) # true
 isneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetworkps(Symbolics.unwrap(p))
 function isneuralnetworkps(p::Symbolics.SymbolicT)
     getmetadata(p, NeuralNetworkParametrisation, false)
+end
+
+"""
+    ModelingToolkitNeuralNets.hasneuralnetworkps(p)
+
+Returns `true` if the parameter has the `neuralnetworkps` metadata set (whenever the value is `true` or `false`).
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.hasneuralnetworkps(d) # false
+ModelingToolkitNeuralNets.hasneuralnetworkps(NN) # false
+ModelingToolkitNeuralNets.hasneuralnetworkps(θ) # true
+````
+"""
+hasneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = hasneuralnetworkps(Symbolics.unwrap(p))
+function hasneuralnetworkps(p::Symbolics.SymbolicT)
+    hasmetadata(p, NeuralNetworkParametrisation)
 end
