@@ -5,8 +5,9 @@ NeuralNetworkBlock
 SymbolicNeuralNetwork
 @SymbolicNeuralNetwork
 multi_layer_feed_forward
-isneuralnetwork
-hasneuralnetwork
-isneuralnetworkps
-hasneuralnetworkps
+ModelingToolkitNeuralNets.isneuralnetwork
+ModelingToolkitNeuralNets.hasneuralnetwork
+ModelingToolkitNeuralNets.isneuralnetworkps
+ModelingToolkitNeuralNets.hasneuralnetworkps
+ModelingToolkitNeuralNets.get_nn_chain
 ```

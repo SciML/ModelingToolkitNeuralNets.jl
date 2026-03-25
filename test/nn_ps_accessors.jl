@@ -146,3 +146,30 @@ let
     @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p5)
     @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p6)
 end
+
+# Checks the `get_nn_chain` accessor function.
+let
+    # Model created via symbolic neural network representation.
+    chain = Lux.Chain(
+        Lux.Dense(1 => 3, Lux.softplus; use_bias = false),
+        Lux.Dense(3 => 1, Lux.softplus; use_bias = false),
+    )
+    @SymbolicNeuralNetwork NN, θ = chain
+    @variables X(t) Y(t)
+    @parameters d
+    eqs = [
+        D(X) ~ NN([X], θ)[1] - d*X
+        D(Y) ~ X - d*Y
+    ]
+    @mtkcompile sys = System(eqs, t)
+
+    # Checks accessor function.
+    @test ModelingToolkitNeuralNets.get_nn_chain(NN) == chain
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(θ)
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(X)
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(d)
+    @test ModelingToolkitNeuralNets.get_nn_chain(sys.NN) == chain
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(sys.θ)
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(sys.X)
+    @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(sys.d)
+end

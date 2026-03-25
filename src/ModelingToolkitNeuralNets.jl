@@ -12,8 +12,8 @@ export NeuralNetworkBlock, SymbolicNeuralNetwork, @SymbolicNeuralNetwork, multi_
 
 include("utils.jl")
 
-# Functionality for defining metadata for neural network-related parameters.
-include("nn_par_metadata.jl")
+# Functionality for accessing various neural network-related parameter properties.
+include("nn_par_accessors.jl")
 
 """
     NeuralNetworkBlock(; n_input = 1, n_output = 1,

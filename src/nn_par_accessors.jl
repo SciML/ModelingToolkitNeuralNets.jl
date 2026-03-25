@@ -1,4 +1,4 @@
-# Defines metadata types.
+### Defines Metadata Type ###
 struct NeuralNetworkParameter end
 struct NeuralNetworkParametrisation end
 Symbolics.option_to_metadata_type(::Val{:neuralnetwork}) = NeuralNetworkParameter
@@ -79,4 +79,30 @@ ModelingToolkitNeuralNets.hasneuralnetworkps(θ) # true
 hasneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = hasneuralnetworkps(Symbolics.unwrap(p))
 function hasneuralnetworkps(p::Symbolics.SymbolicT)
     hasmetadata(p, NeuralNetworkParametrisation)
+end
+
+
+### Defines Other Accessors ###
+
+"""
+    ModelingToolkitNeuralNets.get_nn_chain(p)
+
+For a neural network parameter `p` (i.e. such that `isneuralnetwork(p) == true`), return the associated neural network chain.
+
+Example:
+```julia
+chain = Lux.Chain(
+    Lux.Dense(1 => 3, Lux.softplus; use_bias = false),
+    Lux.Dense(3 => 1, Lux.softplus; use_bias = false),
+)
+@SymbolicNeuralNetwork NN, θ = chain
+
+ModelingToolkitNeuralNets.get_nn_chain(NN) # Returns `chain`.
+ModelingToolkitNeuralNets.get_nn_chain(θ) # Throws an error.
+````
+"""
+get_nn_chain(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = get_nn_chain(Symbolics.unwrap(p))
+function get_nn_chain(p::Symbolics.SymbolicT)
+    isneuralnetwork(p) || error("Parameter $p does not have a neural network chain associated with it.")
+    return getmetadata(p, Symbolics.VariableDefaultValue).lux_model
 end
