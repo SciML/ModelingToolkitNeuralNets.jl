@@ -9,9 +9,7 @@ let
     @parameters p q[1:3]
     for s in [X, Y, Y[1], p, q, q[1]]
         @test !ModelingToolkitNeuralNets.isneuralnetwork(s)
-        @test !ModelingToolkitNeuralNets.hasneuralnetwork(s)
         @test !ModelingToolkitNeuralNets.isneuralnetworkps(s)
-        @test !ModelingToolkitNeuralNets.hasneuralnetworkps(s)
     end
 
     # Tests on MTKNeuralNets parameters
@@ -25,18 +23,9 @@ let
     @test !ModelingToolkitNeuralNets.isneuralnetwork(θ)
     @test ModelingToolkitNeuralNets.isneuralnetwork(U)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(p)
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(NN)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(θ)
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(U)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(p)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(NN)
     @test ModelingToolkitNeuralNets.isneuralnetworkps(θ)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(U)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(p)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(NN)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(θ)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(U)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(p)
 end
 
 # Check that `isneuralnetwork` and `isneuralnetworkps` give correct input on parameters stored in a model created using symbolic approach.
@@ -60,18 +49,10 @@ let
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys.d)
     @test ModelingToolkitNeuralNets.isneuralnetwork(sys.NN)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys.θ)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys.X)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys.d)
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(sys.NN)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys.θ)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys.X)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys.d)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys.NN)
     @test ModelingToolkitNeuralNets.isneuralnetworkps(sys.θ)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys.X)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys.d)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys.NN)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(sys.θ)
 end
 
 # Check that `isneuralnetwork` and `isneuralnetworkps` give correct input on parameters stored in a model created using NNBlock approach.
@@ -102,15 +83,6 @@ let
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.x)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.y)
 
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.nn.lux_apply)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.nn.lux_model)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.nn.p)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.nn.T)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.α)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.δ)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.x)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(sys_nnblock.y)
-
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.lux_apply)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.lux_model)
     @test ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.p)
@@ -119,32 +91,6 @@ let
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.δ)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.x)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.y)
-
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.nn.lux_apply)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.nn.lux_model)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.nn.p)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.nn.T)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.α)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.δ)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.x)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(sys_nnblock.y)
-end
-
-# Specific `hasneuralnetwork` and `hasneuralnetworkps` tests.
-let
-    @parameters p1 [neuralnetwork = true] p2 [neuralnetwork = false] p3 [neuralnetworkps = true] p4 [neuralnetworkps = false] p5 p6
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(p1)
-    @test ModelingToolkitNeuralNets.hasneuralnetwork(p2)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(p3)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(p4)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(p5)
-    @test !ModelingToolkitNeuralNets.hasneuralnetwork(p6)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p1)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p2)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(p3)
-    @test ModelingToolkitNeuralNets.hasneuralnetworkps(p4)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p5)
-    @test !ModelingToolkitNeuralNets.hasneuralnetworkps(p6)
 end
 
 # Checks the `get_nn_chain` accessor function.
