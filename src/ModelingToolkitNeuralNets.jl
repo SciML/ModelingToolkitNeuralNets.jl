@@ -1,6 +1,6 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits
+using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits, getmetadata, hasmetadata
 using IntervalSets: var".."
 using Symbolics: Symbolics, @register_array_symbolic, @wrapped, unwrap, wrap, shape
 using LuxCore: stateless_apply, outputsize
@@ -11,6 +11,9 @@ using ComponentArrays: ComponentArray
 export NeuralNetworkBlock, SymbolicNeuralNetwork, @SymbolicNeuralNetwork, multi_layer_feed_forward, get_network
 
 include("utils.jl")
+
+# Functionality for accessing various neural network-related parameter properties.
+include("nn_par_accessors.jl")
 
 """
     NeuralNetworkBlock(; n_input = 1, n_output = 1,
@@ -32,10 +35,10 @@ function NeuralNetworkBlock(;
     )
     ca = ComponentArray{eltype}(init_params)
 
-    @parameters p[1:length(ca)] = Vector(ca) [tunable = true]
+    @parameters p[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
     @parameters T::typeof(typeof(ca)) = typeof(ca) [tunable = false]
     @parameters lux_model::typeof(chain) = chain [tunable = false]
-    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false]
+    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false, neuralnetwork = true]
 
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
@@ -112,8 +115,8 @@ function SymbolicNeuralNetwork(;
     ca = ComponentArray{eltype}(init_params)
     wrapper = StatelessApplyWrapper(chain, typeof(ca))
 
-    p = @parameters $(nn_p_name)[1:length(ca)] = Vector(ca)
-    NN = @parameters ($(nn_name)::typeof(wrapper))(..)[1:n_output] = wrapper
+    p = @parameters $(nn_p_name)[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
+    NN = @parameters ($(nn_name)::typeof(wrapper))(..)[1:n_output] = wrapper [tunable = false, neuralnetwork = true]
 
     return only(NN), only(p)
 end
@@ -179,7 +182,7 @@ rng = Xoshiro(0)
 @SymbolicNeuralNetwork NN, p = chain rng
 ```
 Notes:
-- The first and last layers of the chain must be one of the following types: `Lux.Dense`. For other first 
+- The first and last layers of the chain must be one of the following types: `Lux.Dense`. For other first
 layer types, use the `SymbolicNeuralNetwork`
 - Types that are intended to be supported in the first layer in future updates include `Lux.Bilinear`,
 `Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`.
