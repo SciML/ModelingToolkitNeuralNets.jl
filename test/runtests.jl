@@ -2,8 +2,12 @@ using ModelingToolkitNeuralNets
 using Test
 using SafeTestsets
 
+const GROUP = ENV["GROUP"]
+
 @testset verbose = true "ModelingToolkitNeuralNets.jl" begin
-    @safetestset "QA" include("qa.jl")
+    if GROUP != "Core"
+        @safetestset "QA" include("qa.jl")
+    end
     @safetestset "Basic" include("lotka_volterra.jl")
     @safetestset "MTK model macro compatibility" include("macro.jl")
     @safetestset "Symbolic Neural Network Macro" include("symbolicnn_macro.jl")
