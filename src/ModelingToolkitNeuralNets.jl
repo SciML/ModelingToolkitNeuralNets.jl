@@ -34,9 +34,10 @@ function NeuralNetworkBlock(;
         name
     )
     ca = ComponentArray{eltype}(init_params)
+    ca_tag = CATypeTag{typeof(ca)}()
 
     @parameters p[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
-    @parameters T::typeof(typeof(ca)) = typeof(ca) [tunable = false]
+    @parameters T::typeof(ca_tag) = ca_tag [tunable = false]
     @parameters lux_model::typeof(chain) = chain [tunable = false]
     @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false, neuralnetwork = true]
 
@@ -61,8 +62,14 @@ function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
     return NeuralNetworkBlock(; n_input, n_output, kwargs...)
 end
 
+struct CATypeTag{CAT} end
+
+_ca_type(::CATypeTag{CAT}) where {CAT} = CAT
+@inline Base.convert(::CATypeTag{CAT}, x) where {CAT} = convert(CAT, x)
+
 function lazyconvert(T, x::Symbolics.Arr)
-    return wrap(Symbolics.term(convert, T, unwrap(x); type = Symbolics.getdefaultval(T), shape = shape(x)))
+    CAT = _ca_type(Symbolics.getdefaultval(T))
+    return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = shape(x)))
 end
 
 """
@@ -113,7 +120,7 @@ function SymbolicNeuralNetwork(;
         eltype = Float64
     )
     ca = ComponentArray{eltype}(init_params)
-    wrapper = StatelessApplyWrapper(chain, typeof(ca))
+    wrapper = StatelessApplyWrapper{typeof(chain), typeof(ca)}(chain)
 
     p = @parameters $(nn_p_name)[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
     NN = @parameters ($(nn_name)::typeof(wrapper))(..)[1:n_output] = wrapper [tunable = false, neuralnetwork = true]
@@ -121,13 +128,12 @@ function SymbolicNeuralNetwork(;
     return only(NN), only(p)
 end
 
-struct StatelessApplyWrapper{NN}
+struct StatelessApplyWrapper{NN, CAT}
     lux_model::NN
-    T::DataType
 end
 
-function (wrapper::StatelessApplyWrapper)(input::AbstractArray, nn_p::AbstractVector)
-    return stateless_apply(get_network(wrapper), input, convert(wrapper.T, nn_p))
+function (wrapper::StatelessApplyWrapper{NN, CAT})(input::AbstractArray, nn_p::AbstractVector) where {NN, CAT}
+    return stateless_apply(get_network(wrapper), input, convert(CAT, nn_p))
 end
 
 function (wrapper::StatelessApplyWrapper)(input::Number, nn_p::AbstractVector)
