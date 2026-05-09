@@ -21,7 +21,7 @@ ModelingToolkitNeuralNets.isneuralnetwork(θ) # false
 """
 isneuralnetwork(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetwork(Symbolics.unwrap(p))
 function isneuralnetwork(p::Symbolics.SymbolicT)
-    getmetadata(p, NeuralNetworkParameter, false)
+    return getmetadata(p, NeuralNetworkParameter, false)
 end
 
 """
@@ -40,7 +40,7 @@ ModelingToolkitNeuralNets.isneuralnetworkps(θ) # true
 """
 isneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetworkps(Symbolics.unwrap(p))
 function isneuralnetworkps(p::Symbolics.SymbolicT)
-    getmetadata(p, NeuralNetworkParametrisation, false)
+    return getmetadata(p, NeuralNetworkParametrisation, false)
 end
 
 

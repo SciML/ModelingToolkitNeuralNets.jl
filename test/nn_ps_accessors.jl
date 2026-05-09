@@ -39,8 +39,8 @@ let
     @variables X(t) Y(t)
     @parameters d
     eqs = [
-        D(X) ~ NN([X], θ)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN([X], θ)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     @mtkcompile sys = System(eqs, t)
 
@@ -104,8 +104,8 @@ let
     @variables X(t) Y(t)
     @parameters d
     eqs = [
-        D(X) ~ NN([X], θ)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN([X], θ)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     @mtkcompile sys = System(eqs, t)
 
