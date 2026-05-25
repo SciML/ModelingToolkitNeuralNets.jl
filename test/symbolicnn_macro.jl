@@ -24,7 +24,6 @@ let
 end
 
 
-
 # Checks that symbolic networks declared with/without the macro are identical (1).
 let
     # Declares the neural networks.
@@ -86,7 +85,7 @@ let
     @SymbolicNeuralNetwork NN, p = chain
     NN_func, p_func = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, nn_name = :NN, nn_p_name = :p)
 
-        # Checks that they are identical.
+    # Checks that they are identical.
     @test isequal(NN, NN_func)
     @test isequal(p, p_func)
 
@@ -94,12 +93,12 @@ let
     @variables X(t) Y(t)
     @parameters d
     eqs_macro = [
-        D(X) ~ NN([X], p)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN([X], p)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     eqs_func = [
-        D(X) ~ NN_func([X], p_func)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN_func([X], p_func)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     @mtkcompile sys_macro = System(eqs_macro, t)
     @mtkcompile sys_func = System(eqs_func, t)
@@ -149,8 +148,8 @@ let
 
     # Checks that non-supported neural network architectures throw errors.
     @test_throws Exception @eval @SymbolicNeuralNetwork NN, p = Lux.Chain(
-        Lux.Conv((3, 3), 1 => 8, Lux.relu; pad=1),
-        Lux.Conv((3, 3), 8 => 16, Lux.relu; pad=1),
+        Lux.Conv((3, 3), 1 => 8, Lux.relu; pad = 1),
+        Lux.Conv((3, 3), 8 => 16, Lux.relu; pad = 1),
         Lux.Dense(28 * 28 * 16 => 10)
     )
 end
