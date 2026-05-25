@@ -208,7 +208,7 @@ function make_symbolic_nn_declaration(expr::Expr)
     end
 
     # Extracts individual component symbols.
-    nn,p = expr.args[1].args
+    nn, p = expr.args[1].args
     chain, rng = if Meta.isexpr(expr.args[2], :tuple)
         if (length(expr.args[2].args) > 2)
             error("@SymbolicNeuralNetwork accepts no more than 2 inputs on the right-hand side.")
@@ -219,9 +219,13 @@ function make_symbolic_nn_declaration(expr::Expr)
     end
 
     # Constructs the output expression.
-    snn_dec = :(($nn, $p) = SymbolicNeuralNetwork(; chain = $chain, nn_name = $(QuoteNode(nn)),
-        nn_p_name = $(QuoteNode(p)), n_input = ModelingToolkitNeuralNets._num_chain_inputs($chain),
-        n_output = ModelingToolkitNeuralNets._num_chain_outputs($chain)))
+    snn_dec = :(
+        ($nn, $p) = SymbolicNeuralNetwork(;
+            chain = $chain, nn_name = $(QuoteNode(nn)),
+            nn_p_name = $(QuoteNode(p)), n_input = ModelingToolkitNeuralNets._num_chain_inputs($chain),
+            n_output = ModelingToolkitNeuralNets._num_chain_outputs($chain)
+        )
+    )
     if !isnothing(rng)
         push!(snn_dec.args[2].args[2].args, Expr(:kw, :rng, rng))
     end
