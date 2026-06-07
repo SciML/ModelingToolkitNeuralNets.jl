@@ -2,7 +2,7 @@ using ModelingToolkitNeuralNets
 using Test
 using SafeTestsets
 
-const GROUP = ENV["GROUP"]
+const GROUP = get(ENV, "GROUP", "All")
 
 @testset verbose = true "ModelingToolkitNeuralNets.jl" begin
     if GROUP != "Core"
