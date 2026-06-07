@@ -20,7 +20,7 @@ jobs:
         julia-version: ['1.10']
     uses: "SciML/.github/.github/workflows/downgrade.yml@v1"
     with:
-      allow-reresolve: true
+      allow-reresolve: false
       julia-version: "${{ matrix.julia-version }}"
       group: "${{ matrix.group }}"
       skip: "Pkg,TOML"
