@@ -1,0 +1,9 @@
+# Root test-group matrix for ModelingToolkitNeuralNets.jl, consumed by the
+# canonical grouped-tests.yml@v1 caller. The single "All" group reproduces the
+# previous Tests.yml matrix: the full suite (QA + functional tests, dispatched
+# via GROUP=All in test/runtests.jl) on Julia "1" and "lts", across all three
+# OSes. runtests.jl runs QA whenever GROUP != "Core", so GROUP=All runs
+# everything in one job per cell, matching the old behavior exactly.
+[All]
+versions = ["1", "lts"]
+os = ["ubuntu-latest", "macos-latest", "windows-latest"]
