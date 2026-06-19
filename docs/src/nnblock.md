@@ -212,6 +212,7 @@ using OptimizationOptimJL
 using LineSearches
 using Statistics
 using SciMLSensitivity
+import SciMLLogging
 import Zygote
 
 tp = Symbolics.scalarize(sys3.thermal_nn.nn.p)
@@ -252,7 +253,7 @@ function cost(x, opt_ps)
     new_prob = remake(prob; u0, p)
 
     new_sol = solve(new_prob, Tsit5(), saveat = ts, abstol = 1e-8,
-        reltol = 1e-8, verbose = false, sensealg = GaussAdjoint())
+        reltol = 1e-8, verbose = SciMLLogging.None(), sensealg = GaussAdjoint())
 
     !SciMLBase.successful_retcode(new_sol) && return Inf
 
