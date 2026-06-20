@@ -71,7 +71,7 @@ sol1 = solve(prob1, Tsit5(), reltol = 1e-6)
 prob2 = ODEProblem(sys2, Pair[], (0, 100.0))
 sol2 = solve(prob2, Tsit5(), reltol = 1e-6)
 plot(sol1, idxs = sys1.pot.T, label = &quot;pot.T in original system&quot;)
-plot!(sol2, idxs = sys1.pot.T, label = &quot;pot.T in simplified system&quot;)</code></pre><img src="3583409b.svg" alt="Example block output"/><p>If we take a closer look at the 2 models, the original system has 2 unknowns,</p><pre><code class="language-julia hljs">unknowns(sys1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{SymbolicUtils.BasicSymbolicImpl.var&quot;typeof(BasicSymbolicImpl)&quot;{SymbolicUtils.SymReal}}:
+plot!(sol2, idxs = sys1.pot.T, label = &quot;pot.T in simplified system&quot;)</code></pre><img src="c9782485.svg" alt="Example block output"/><p>If we take a closer look at the 2 models, the original system has 2 unknowns,</p><pre><code class="language-julia hljs">unknowns(sys1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{SymbolicUtils.BasicSymbolicImpl.var&quot;typeof(BasicSymbolicImpl)&quot;{SymbolicUtils.SymReal}}:
  Tsensor₊port₊T(t)
  source₊port₊T(t)</code></pre><p>while the simplified system only has 1 unknown</p><pre><code class="language-julia hljs">unknowns(sys2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1-element Vector{SymbolicUtils.BasicSymbolicImpl.var&quot;typeof(BasicSymbolicImpl)&quot;{SymbolicUtils.SymReal}}:
  Tsensor₊port₊T(t)</code></pre><p>With the component UDE approach, we want to add a new component in the model that would be connected between the source and the pot such that we can use it to discover the missing physics. To this end, we will build a <code>ThermalNN</code> component that adds a new state in the system (<code>x</code>) that is prescribed by the output of the neural network, but it also incorporates physics knoweledge about the system by formulating the component as something that outputs a heat flow rate based on some scaled input temperatures.</p><p>The system in this example is quite simple, so we will use a very small neural network with 1 hidden layer of size 4. For more complex dynamics, a larger network would be required. The inputs to out neural network will use scaled temperature values, such that we don&#39;t input numbers that would be too large for the chosen activation function. The chosen activation function will always output positive numbers for positive inputs, so this also makes physical sense for out component.</p><pre><code class="language-julia hljs">function ThermalNN(; name)
@@ -146,6 +146,7 @@ using OptimizationOptimJL
 using LineSearches
 using Statistics
 using SciMLSensitivity
+import SciMLLogging
 import Zygote
 
 tp = Symbolics.scalarize(sys3.thermal_nn.nn.p)
@@ -186,7 +187,7 @@ function cost(x, opt_ps)
     new_prob = remake(prob; u0, p)
 
     new_sol = solve(new_prob, Tsit5(), saveat = ts, abstol = 1e-8,
-        reltol = 1e-8, verbose = false, sensealg = GaussAdjoint())
+        reltol = 1e-8, verbose = SciMLLogging.None(), sensealg = GaussAdjoint())
 
     !SciMLBase.successful_retcode(new_sol) &amp;&amp; return Inf
 
@@ -222,11 +223,11 @@ plot!(plt,
         (sys1.conduction.port_a.T-273.15)/10, sys1.conduction.port_a.T,
         sys1.conduction.port_a.Q_flow, sys1.conduction.port_b.T,
         sys1.pot.T, sys1.pot.port.Q_flow],
-    ls = :dash)</code></pre><img src="3334dc6a.svg" alt="Example block output"/><p>As we can see from the final plot, the neural network fits very well and not only the training data fits, but also the rest of the predictions of the system match the original system. Let us also compare against the predictions of the incomplete system:</p><pre><code class="language-julia hljs">plot(sol1, label = [&quot;original sys: pot T&quot; &quot;original sys: plate T&quot;], lw = 3)
+    ls = :dash)</code></pre><img src="248af0ee.svg" alt="Example block output"/><p>As we can see from the final plot, the neural network fits very well and not only the training data fits, but also the rest of the predictions of the system match the original system. Let us also compare against the predictions of the incomplete system:</p><pre><code class="language-julia hljs">plot(sol1, label = [&quot;original sys: pot T&quot; &quot;original sys: plate T&quot;], lw = 3)
 plot!(sol3; idxs = [sys3.pot.T], label = &quot;untrained UDE&quot;, lw = 2.5)
 plot!(sol2; idxs = [sys2.pot.T], label = &quot;incomplete sys: pot T&quot;, lw = 2.5)
 plot!(new_sol1; idxs = [sys3.pot.T, sys3.thermal_nn.x],
-    label = &quot;trained UDE&quot;, ls = :dash, lw = 2.5)</code></pre><img src="663518fa.svg" alt="Example block output"/><p>Now that our neural network is trained, we can go a step further and use <a href="https://github.com/MilesCranmer/SymbolicRegression.jl"><code>SymbolicRegression.jl</code></a> to find a symbolic expression for the function represented by the neural network.</p><pre><code class="language-julia hljs">using SymbolicRegression
+    label = &quot;trained UDE&quot;, ls = :dash, lw = 2.5)</code></pre><img src="05fcafbc.svg" alt="Example block output"/><p>Now that our neural network is trained, we can go a step further and use <a href="https://github.com/MilesCranmer/SymbolicRegression.jl"><code>SymbolicRegression.jl</code></a> to find a symbolic expression for the function represented by the neural network.</p><pre><code class="language-julia hljs">using SymbolicRegression
 
 lux_model = new_sol1.ps[sys3.thermal_nn.nn.lux_model]
 nn_p = new_sol1.ps[sys3.thermal_nn.nn.p]
@@ -237,63 +238,63 @@ sr_output = LuxCore.stateless_apply(lux_model, sr_input, convert(T, nn_p))
 
 equation_search(sr_input, sr_output)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">HallOfFame{...}:
     .exists[1] = true
-    .members[1] = PopMember(tree = (0.39214364429466775), loss = 0.07464441494775652, cost = 0.32678430496099925)
+    .members[1] = PopMember(tree = (0.3924778949374398), loss = 0.07509026230578829, cost = 0.32772023530144373)
     .exists[2] = false
     .members[2] = undef
     .exists[3] = true
-    .members[3] = PopMember(tree = (0.09999612471995478 + 0.2921417098735727), loss = 0.0746444149815092, cost = 0.32678430510876444)
+    .members[3] = PopMember(tree = (-0.04218417278619572 + 0.43464932956318975), loss = 0.07509026246804629, cost = 0.3277202360095945)
     .exists[4] = false
     .members[4] = undef
     .exists[5] = true
-    .members[5] = PopMember(tree = ((x2 - x1) * -10.000387547123808), loss = 1.4732276857119766e-6, cost = 6.4496142901198975e-6)
+    .members[5] = PopMember(tree = ((x2 - x1) * -10.00007095078753), loss = 2.4973934450412046e-6, cost = 1.0899500711773345e-5)
     .exists[6] = false
     .members[6] = undef
     .exists[7] = true
-    .members[7] = PopMember(tree = ((x2 * -10.0027962831501) + (x1 * 10.002604775247722)), loss = 1.4631469111903559e-6, cost = 6.405481867113809e-6)
+    .members[7] = PopMember(tree = ((x2 - (x1 - -5.0861770065243756e-5)) * -9.991369843625046), loss = 2.4126154501365526e-6, cost = 1.0529499814381415e-5)
     .exists[8] = false
     .members[8] = undef
     .exists[9] = true
-    .members[9] = PopMember(tree = ((x2 - x1) * (x2 + (-9.935409754323802 - x1))), loss = 8.26345684027009e-7, cost = 3.617642394294146e-6)
+    .members[9] = PopMember(tree = ((((x2 + -1.2645165149235055e-5) - x1) * -9.99136984361531) - -0.0003818362343130662), loss = 2.4126154501366094e-6, cost = 1.0529499814381662e-5)
     .exists[10] = false
     .members[10] = undef
     .exists[11] = true
-    .members[11] = PopMember(tree = ((x2 + (-8.840840531479241e-5 - x1)) * ((x2 + -9.920264979297448) - x1)), loss = 5.74929394898192e-7, cost = 2.516972004468773e-6)
+    .members[11] = PopMember(tree = ((1.3541690466272326e-5 / (x2 + 0.0015783639384316806)) + ((x2 - x1) * -9.99905930150585)), loss = 1.308646816281383e-6, cost = 5.711393586717579e-6)
     .exists[12] = false
     .members[12] = undef
     .exists[13] = true
-    .members[13] = PopMember(tree = (((((x2 - x1) + -5.8468065999888) * (x2 - x1)) + 0.0008485316651722745) * 1.6874442278679367), loss = 3.9648527053950823e-7, cost = 1.7357650086909966e-6)
+    .members[13] = PopMember(tree = (((x2 - x1) * -9.998951551298832) - (0.0007507984366377852 / ((x2 * -55.30662685453011) + -0.08768139563648067))), loss = 1.3086170154366665e-6, cost = 5.711263525381491e-6)
     .exists[14] = false
     .members[14] = undef
     .exists[15] = true
-    .members[15] = PopMember(tree = (((x2 - x1) + -5.846830817816489) * ((x2 - ((x1 + 0.00018123136838079124) * 0.999944406797071)) * 1.6875300584407567)), loss = 3.547663554139868e-7, cost = 1.5531245969125373e-6)
+    .members[15] = PopMember(tree = (((x2 - x1) * -9.999698701584965) - (0.0005873074519132388 / (((x2 * x2) * -8724.506864197512) + -0.0740811590275114))), loss = 1.2007003007798736e-6, cost = 5.240277141337968e-6)
     .exists[16] = false
     .members[16] = undef
     .exists[17] = true
-    .members[17] = PopMember(tree = (1.6833798752682658 * (((-5.845672560806684 - (x1 / 0.9784857457667461)) + x2) * (x2 - ((x1 * 0.9998085230630483) + 0.0002746006134608689)))), loss = 2.443625665751688e-7, cost = 1.0697900376423609e-6)
+    .members[17] = PopMember(tree = (((x2 - x1) * -10.001282253630283) - ((0.0006123024157740133 / (((x2 * -8724.506864198976) * x2) + -0.07640471332388685)) + 9.326450002385223e-5)), loss = 1.1981237061137729e-6, cost = 5.229031978725373e-6)
     .exists[18] = false
     .members[18] = undef
     .exists[19] = true
-    .members[19] = PopMember(tree = (((x2 + (-5.84564575331688 - ((x1 / 0.9891472174383621) / 0.9891472174382054))) * ((x2 - (x1 * 0.9998080488492309)) + -0.00027494817280746176)) * 1.6833711470281592), loss = 2.443638379957101e-7, cost = 1.0697956037691527e-6)
+    .members[19] = PopMember(tree = (((x2 - x1) * -10.001149926054872) - (0.0006434493720771344 / (-0.08888896817057804 - ((x2 / (x1 + -0.024282092386131014)) * (x2 / -0.02798563758135486))))), loss = 1.1134812774527965e-6, cost = 4.859622739957504e-6)
     .exists[20] = false
     .members[20] = undef
     .exists[21] = true
-    .members[21] = PopMember(tree = ((((x2 + (-5.845514580908541 - ((x1 * 0.999801972279567) / 0.9785383380894448))) * 1.682913744023857) * (x2 + (-0.0021229240325330865 - (x1 * 0.999801972279567)))) + -0.018185214287726282), loss = 2.445634172322376e-7, cost = 1.070669337753657e-6)
+    .members[21] = PopMember(tree = (((x2 - x1) * -10.002094168275509) - (0.000767340435930606 / ((-0.08907246929684501 - ((x2 * x2) / 0.0013637930395176729)) / ((x1 + -0.026473023129379106) / -0.028545420003264186)))), loss = 1.0876827835649304e-6, cost = 4.747029066320775e-6)
     .exists[22] = false
     .members[22] = undef
     .exists[23] = true
-    .members[23] = PopMember(tree = (((((x2 + ((x2 - x1) * x1)) - ((x1 / 1.0617304264498937) + 3.362090052150014)) + -6.516660615671123) * ((x2 - x1) + -0.015465101166337938)) - 0.15071412454063446), loss = 2.407277451251688e-7, cost = 1.0538772248481696e-6)
+    .members[23] = PopMember(tree = (((x2 - x1) * -10.001757658517874) - (0.000685180201069791 / (((x1 * -3.912908774278753) - (x2 * ((x2 / (x1 + -0.02743470197736053)) / -0.03151418996827305))) + -0.08703551316170584))), loss = 1.0758945383147382e-6, cost = 4.695581030469576e-6)
     .exists[24] = false
     .members[24] = undef
     .exists[25] = true
-    .members[25] = PopMember(tree = ((((((x2 - (x1 * 1.0131444371570526)) * x2) + (x2 + -6.522140862044194)) - ((x1 / 1.0795628852305645) + 3.36757029852316)) * (x2 + (-0.015619744745912045 - x1))) - 0.15247982310727307), loss = 2.325516956424165e-7, cost = 1.0180834598435413e-6)
+    .members[25] = PopMember(tree = (((x2 - x1) * -10.001699046194028) - (0.0007291425719364315 / (((x2 - x1) * 8.330458046098897) + (-0.0896108550488176 - (((x2 * x2) / (x1 + -0.028335836635544915)) / -0.031315739999353796))))), loss = 1.0719718947751973e-6, cost = 4.678461238577693e-6)
     .exists[26] = false
     .members[26] = undef
     .exists[27] = true
-    .members[27] = PopMember(tree = ((((((x2 - (x1 * 1.0182700422266924)) * x1) * 0.8680420836081975) + ((x2 + -6.520764738751836) - ((x1 / 1.07649922783488) + 3.366194175230822))) * (x2 + (-0.015607694452396315 - x1))) - 0.15235086128452593), loss = 2.1554923930646773e-7, cost = 9.436487431904404e-7)
+    .members[27] = PopMember(tree = (((x2 - x1) * -10.001756597856641) - (0.0007262112805019187 / (((((x2 * 1.1052433482436124) - x1) * 8.330457239602868) + -0.08965654019831842) - ((x2 * (x2 / (x1 + -0.028313613932068913))) / -0.03123175288402807)))), loss = 1.0724156363703421e-6, cost = 4.680397882498068e-6)
     .exists[28] = false
     .members[28] = undef
     .exists[29] = true
-    .members[29] = PopMember(tree = ((((x2 + -0.015990202794107122) - x1) * (((((x1 * ((x2 - (x1 * 1.0328167859938995)) * 0.8537444991473015)) + x2) * 1.0224524975933238) - ((x1 / 1.0725284358086555) + 3.367567414182663)) + -6.522137977703644)) - 0.15607612290664913), loss = 2.0420081727951522e-7, cost = 8.939667112919074e-7)
+    .members[29] = PopMember(tree = (((x2 - x1) * -10.001594919196501) - (0.0007293029141907587 / ((((x2 * x2) + (x2 - x1)) * 8.330458499590224) + (-0.08962845802218103 - ((x2 / (x1 + -0.028365417470525046)) * (x2 / -0.03148677062606678)))))), loss = 1.0716869930946864e-6, cost = 4.677217827742416e-6)
     .exists[30] = false
     .members[30] = undef
-</code></pre><p>Looking at the results above, we see that we have a term linear in the difference between its inputs, <code>x₁ - x₂</code>, which were the scaled temperature values. This also makes sense physically, as the heat flow rate through the missing components in our system is proportional with the temperature difference between the ports. Having the symbolic expression for the UDE results thus helps us understand the missing physics better.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../friction/">Friction Model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 7 May 2026 07:03">Thursday 7 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><p>Looking at the results above, we see that we have a term linear in the difference between its inputs, <code>x₁ - x₂</code>, which were the scaled temperature values. This also makes sense physically, as the heat flow rate through the missing components in our system is proportional with the temperature difference between the ports. Having the symbolic expression for the UDE results thus helps us understand the missing physics better.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../friction/">Friction Model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Saturday 20 June 2026 12:09">Saturday 20 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
