@@ -1,8 +1,8 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkitBase: @parameters, @named, @variables, System, t_nounits, getmetadata, hasmetadata
+using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getmetadata
 using IntervalSets: var".."
-using Symbolics: Symbolics, @register_array_symbolic, @wrapped, unwrap, wrap, shape
+using Symbolics: Symbolics, unwrap, wrap, shape
 using LuxCore: stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
