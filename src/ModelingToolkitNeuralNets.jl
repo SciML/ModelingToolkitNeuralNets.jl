@@ -1,6 +1,7 @@
 module ModelingToolkitNeuralNets
 
-using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getmetadata
+using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getdefault,
+    getmetadata
 using IntervalSets: var".."
 using Symbolics: Symbolics, unwrap, wrap, shape
 using LuxCore: stateless_apply, outputsize
@@ -22,8 +23,41 @@ include("nn_par_accessors.jl")
         init_params = Lux.initialparameters(rng, chain),
         eltype = Float64,
         name)
+    NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
 
-Create a component neural network as a `System`.
+Create a ModelingToolkit component system that evaluates a Lux neural network.
+
+# Arguments
+
+  - `n_input`: Number of scalar inputs accepted by the network.
+  - `n_output`: Number of scalar outputs produced by the network.
+
+# Keyword Arguments
+
+  - `chain`: Lux model to call from the generated symbolic equations.
+  - `rng`: Random number generator used to initialize parameters and query the Lux output size.
+  - `init_params`: Initial Lux parameter container. It is flattened into the tunable
+    parameter vector `p`.
+  - `eltype`: Element type used for the stored `ComponentArray` parameter values.
+  - `name`: Required ModelingToolkit component name.
+
+# Returns
+
+A `System` with input variables `inputs`, output variables `outputs`, tunable
+network parameters `p`, and non-tunable parameters storing the Lux model and
+parameter-container type.
+
+# Examples
+
+```julia
+using Lux, ModelingToolkitBase, ModelingToolkitNeuralNets, Random
+
+chain = multi_layer_feed_forward(2, 1; width = 8, depth = 2)
+@named nn = NeuralNetworkBlock(2, 1; chain, rng = Xoshiro(0))
+
+length(nn.inputs) == 2
+length(nn.outputs) == 1
+```
 """
 function NeuralNetworkBlock(;
         n_input = 1, n_output = 1,
@@ -68,7 +102,7 @@ _ca_type(::CATypeTag{CAT}) where {CAT} = CAT
 @inline Base.convert(::CATypeTag{CAT}, x) where {CAT} = convert(CAT, x)
 
 function lazyconvert(T, x::Symbolics.Arr)
-    CAT = _ca_type(Symbolics.getdefaultval(T))
+    CAT = _ca_type(getdefault(T))
     return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = shape(x)))
 end
 
@@ -81,34 +115,51 @@ end
         nn_p_name = :p,
         eltype = Float64)
 
-Create symbolic parameter for a neural network and one for its parameters.
-Example:
+Create a callable symbolic neural-network parameter and a symbolic parameter vector.
 
+# Keyword Arguments
+
+  - `n_input`: Number of scalar entries expected in the network input vector.
+  - `n_output`: Number of scalar entries returned by the network.
+  - `chain`: Lux model represented by the returned callable parameter.
+  - `rng`: Random number generator used to initialize Lux parameters.
+  - `init_params`: Initial Lux parameter container. It is flattened into the returned
+    symbolic parameter vector.
+  - `nn_name`: Symbol used as the callable neural-network parameter name.
+  - `nn_p_name`: Symbol used as the neural-network parameter-vector name.
+  - `eltype`: Element type used for the stored `ComponentArray` parameter values.
+
+# Returns
+
+A tuple `(NN, p)` where `NN(input, p)` is a symbolic callable parameter and `p`
+is a symbolic vector containing the flattened neural-network parameters.
+
+# Interface
+
+`NN(input, p)` expects `input` to have length `n_input` and `p` to have the same
+length as the flattened `init_params`. The returned symbolic expression has
+length `n_output`. Use [`get_network`](@ref) on the default value of `NN` to
+recover the underlying Lux model.
+
+# Examples
+
+```julia
+using Lux, ModelingToolkitBase, ModelingToolkitNeuralNets, Random
+
+chain = multi_layer_feed_forward(2, 2; width = 4)
+NN, p = SymbolicNeuralNetwork(; chain, n_input = 2, n_output = 2, rng = Xoshiro(0))
+
+get_network(ModelingToolkitBase.getdefault(NN)) === chain
 ```
-chain = multi_layer_feed_forward(2, 2)
-NN, p = SymbolicNeuralNetwork(; chain, n_input=2, n_output=2, rng = StableRNG(42))
+
+The returned values can be used in equations as symbolic parameters:
+
+```julia
+using ModelingToolkitBase
+
+@variables x(t_nounits)[1:2] y(t_nounits)[1:2]
+eqs = [y ~ NN(x, p)]
 ```
-
-The NN and p are symbolic parameters that can be used later as part of a system.
-To change the name of the symbolic variables, use `nn_name` and `nn_p_name`.
-To get the predictions of the neural network, use
-
-```
-pred ~ NN(input, p)
-```
-
-where `pred` and `input` are a symbolic vector variable with the lengths `n_output` and `n_input`.
-
-To use this outside of an equation, you can get the default values for the symbols and make a similar call
-
-```
-defaults(sys)[sys.NN](input, nn_p)
-```
-
-where `sys` is a system (e.g. `ODESystem`) that contains `NN`, `input` is a vector of `n_input` length and
-`nn_p` is a vector representing parameter values for the neural network.
-
-To get the underlying Lux model you can use `get_network(defaults(sys)[sys.NN])` or
 """
 function SymbolicNeuralNetwork(;
         n_input = 1, n_output = 1,
@@ -132,7 +183,9 @@ struct StatelessApplyWrapper{NN, CAT}
     lux_model::NN
 end
 
-function (wrapper::StatelessApplyWrapper{NN, CAT})(input::AbstractArray, nn_p::AbstractVector) where {NN, CAT}
+function (wrapper::StatelessApplyWrapper{NN, CAT})(
+        input::AbstractArray, nn_p::AbstractVector
+    ) where {NN, CAT}
     return stateless_apply(get_network(wrapper), input, convert(CAT, nn_p))
 end
 
@@ -145,53 +198,69 @@ function Base.show(io::IO, m::MIME"text/plain", wrapper::StatelessApplyWrapper)
     return show(io, m, get_network(wrapper))
 end
 
+"""
+    get_network(wrapper)
+
+Return the Lux model stored by a symbolic neural-network callable.
+
+# Arguments
+
+  - `wrapper`: A callable wrapper obtained from the default value of a neural-network
+    parameter created by [`SymbolicNeuralNetwork`](@ref).
+
+# Returns
+
+The Lux model passed as the `chain` keyword when constructing the symbolic neural network.
+
+# Examples
+
+```julia
+using Lux, ModelingToolkitBase, ModelingToolkitNeuralNets
+
+chain = Lux.Chain(
+    Lux.Dense(1 => 3, Lux.softplus; use_bias = false),
+    Lux.Dense(3 => 1, Lux.softplus; use_bias = false),
+)
+NN, p = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1)
+
+get_network(ModelingToolkitBase.getdefault(NN)) === chain
+```
+"""
 get_network(wrapper::StatelessApplyWrapper) = wrapper.lux_model
 
 """
     @SymbolicNeuralNetwork
+    @SymbolicNeuralNetwork NN, p = chain
+    @SymbolicNeuralNetwork NN, p = chain rng
 
-Macro for interfacing with the `SymbolicNeuralNetwork` function. Essentially handles automatic
-naming of the symbolic variables. It takes a single input, the Lux chain from which to construct
-the symbolic neural network, and returns the corresponding symbolic parameters.
+Construct a symbolic neural network while inferring names and dimensions from the assignment.
 
-Example:
-```
-chain = Lux.Chain(
-    Lux.Dense(1 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
-)
-@SymbolicNeuralNetwork NN, p = chain
-```
-is equivalent to
-```
-chain = Lux.Chain(
-    Lux.Dense(1 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
-)
-NN, p = SymbolicNeuralNetwork(; chain, n_input=1, n_output=1, nn_name =  :NN, nn_p_name = :p)
-```
-Here, `@SymbolicNeuralNetwork` takes the neural network chain as its input, and:
-1) Automatically infer nn_name and nn_p_name from the variable names on the left-hand side of the assignment.
-2) Automatically infer n_input and n_output from the chain structure.
+# Arguments
 
-Designation of rng. The only other option `@SymbolicNeuralNetwork` currently accepts is a
-random number generator. This is simply provided as a second input to `@SymbolicNeuralNetwork`:
-```
+  - `NN`: Left-hand-side name for the callable neural-network parameter.
+  - `p`: Left-hand-side name for the flattened neural-network parameter vector.
+  - `chain`: Lux chain whose first and last layers determine `n_input` and `n_output`.
+  - `rng`: Optional random number generator passed to [`SymbolicNeuralNetwork`](@ref).
+
+# Interface
+
+The macro supports Lux chains whose first and last layers are `Lux.Dense`, because
+those layers expose the input and output dimensions needed for automatic size
+inference. For other layer types, call [`SymbolicNeuralNetwork`](@ref) directly
+with explicit `n_input` and `n_output`.
+
+# Examples
+
+```julia
+using Lux, ModelingToolkitNeuralNets, Random
+
 chain = Lux.Chain(
-    Lux.Dense(1 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
-    Lux.Dense(3 => 1, Lux.softplus, use_bias = false)
+    Lux.Dense(1 => 3, Lux.softplus; use_bias = false),
+    Lux.Dense(3 => 1, Lux.softplus; use_bias = false),
 )
 rng = Xoshiro(0)
 @SymbolicNeuralNetwork NN, p = chain rng
 ```
-Notes:
-- The first and last layers of the chain must be one of the following types: `Lux.Dense`. For other first
-layer types, use the `SymbolicNeuralNetwork`
-- Types that are intended to be supported in the first layer in future updates include `Lux.Bilinear`,
-`Lux.RNNCell`, `Lux.LSTMCell`, `Lux.GRUCell`.
 """
 macro SymbolicNeuralNetwork(expr::Expr)
     return esc(make_symbolic_nn_declaration(expr))

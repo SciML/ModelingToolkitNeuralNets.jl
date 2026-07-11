@@ -111,6 +111,7 @@ let
 
     # Checks accessor function.
     @test ModelingToolkitNeuralNets.get_nn_chain(NN) == chain
+    @test get_network(ModelingToolkitBase.getdefault(NN)) === chain
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(θ)
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(X)
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(d)
