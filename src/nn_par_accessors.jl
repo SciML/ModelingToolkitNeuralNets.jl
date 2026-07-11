@@ -4,44 +4,65 @@ struct NeuralNetworkParametrisation end
 Symbolics.option_to_metadata_type(::Val{:neuralnetwork}) = NeuralNetworkParameter
 Symbolics.option_to_metadata_type(::Val{:neuralnetworkps}) = NeuralNetworkParametrisation
 
+_symbolic_metadata(p, key, default) = _symbolic_metadata_unwrapped(Symbolics.unwrap(p), key, default)
+function _symbolic_metadata_unwrapped(p, key, default)
+    return applicable(getmetadata, p, key, default) ? getmetadata(p, key, default) : default
+end
+
 ### Defines Metadata Getters ###
 """
     ModelingToolkitNeuralNets.isneuralnetwork(p)
 
-Returns `true` if the parameter corresponds to the neural network chain that is saved as a MTK parameter. This function is primarily intended for internal use within dependent packages.
+Return whether `p` is the symbolic callable for a neural network.
 
-Example:
+# Arguments
+
+  - `p`: Symbolic variable, parameter, symbolic array, or callable symbolic wrapper to inspect.
+
+# Returns
+
+`true` when `p` has neural-network callable metadata and `false` otherwise.
+
+# Examples
+
 ```julia
-@parameters d
+using Lux, ModelingToolkitBase, ModelingToolkitNeuralNets
+
+chain = multi_layer_feed_forward(1, 1)
 @SymbolicNeuralNetwork NN, θ = chain
-ModelingToolkitNeuralNets.isneuralnetwork(d) # false
-ModelingToolkitNeuralNets.isneuralnetwork(NN) # true
-ModelingToolkitNeuralNets.isneuralnetwork(θ) # false
-````
+
+ModelingToolkitNeuralNets.isneuralnetwork(NN)
+ModelingToolkitNeuralNets.isneuralnetwork(θ)
+```
 """
-isneuralnetwork(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetwork(Symbolics.unwrap(p))
-function isneuralnetwork(p::Symbolics.SymbolicT)
-    return getmetadata(p, NeuralNetworkParameter, false)
-end
+isneuralnetwork(p) = _symbolic_metadata(p, NeuralNetworkParameter, false)
 
 """
     ModelingToolkitNeuralNets.isneuralnetworkps(p)
 
-Returns `true` if the parameter corresponds to the a neural network parametrisation. This function is primarily intended for internal use within dependent packages.
+Return whether `p` is the symbolic parameter vector for a neural network.
 
-Example:
+# Arguments
+
+  - `p`: Symbolic variable, parameter, symbolic array, or callable symbolic wrapper to inspect.
+
+# Returns
+
+`true` when `p` has neural-network parameter-vector metadata and `false` otherwise.
+
+# Examples
+
 ```julia
-@parameters d
+using Lux, ModelingToolkitBase, ModelingToolkitNeuralNets
+
+chain = multi_layer_feed_forward(1, 1)
 @SymbolicNeuralNetwork NN, θ = chain
-ModelingToolkitNeuralNets.isneuralnetworkps(d) # false
-ModelingToolkitNeuralNets.isneuralnetworkps(NN) # false
-ModelingToolkitNeuralNets.isneuralnetworkps(θ) # true
-````
+
+ModelingToolkitNeuralNets.isneuralnetworkps(NN)
+ModelingToolkitNeuralNets.isneuralnetworkps(θ)
+```
 """
-isneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = isneuralnetworkps(Symbolics.unwrap(p))
-function isneuralnetworkps(p::Symbolics.SymbolicT)
-    return getmetadata(p, NeuralNetworkParametrisation, false)
-end
+isneuralnetworkps(p) = _symbolic_metadata(p, NeuralNetworkParametrisation, false)
 
 
 ### Defines Other Accessors ###
@@ -49,22 +70,34 @@ end
 """
     ModelingToolkitNeuralNets.get_nn_chain(p)
 
-For a neural network parameter `p` (i.e. such that `isneuralnetwork(p) == true`), return the associated neural network chain. This function is primarily intended for internal use within dependent packages.
+Return the Lux chain associated with a symbolic neural-network callable.
 
-Example:
+# Arguments
+
+  - `p`: Symbolic callable parameter created by [`SymbolicNeuralNetwork`](@ref) or
+    [`@SymbolicNeuralNetwork`](@ref).
+
+# Returns
+
+The Lux chain stored as the default value of `p`.
+
+# Throws
+
+Throws an `ErrorException` when `p` is not a neural-network callable parameter.
+
+# Examples
+
 ```julia
-chain = Lux.Chain(
-    Lux.Dense(1 => 3, Lux.softplus; use_bias = false),
-    Lux.Dense(3 => 1, Lux.softplus; use_bias = false),
-)
+using ModelingToolkitNeuralNets
+
+chain = multi_layer_feed_forward(1, 1)
 @SymbolicNeuralNetwork NN, θ = chain
 
-ModelingToolkitNeuralNets.get_nn_chain(NN) # Returns `chain`.
-ModelingToolkitNeuralNets.get_nn_chain(θ) # Throws an error.
-````
+ModelingToolkitNeuralNets.get_nn_chain(NN) === chain
+```
 """
-get_nn_chain(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = get_nn_chain(Symbolics.unwrap(p))
-function get_nn_chain(p::Symbolics.SymbolicT)
+get_nn_chain(p) = _get_nn_chain_unwrapped(Symbolics.unwrap(p))
+function _get_nn_chain_unwrapped(p)
     isneuralnetwork(p) || error("Parameter $p does not have a neural network chain associated with it.")
     return getmetadata(p, Symbolics.VariableDefaultValue).lux_model
 end

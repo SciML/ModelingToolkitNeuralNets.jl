@@ -1,9 +1,10 @@
-using SciMLTesting, ModelingToolkitNeuralNets, Test
+using SciMLTesting, ModelingToolkitNeuralNets
 using JET
 
 run_qa(
     ModelingToolkitNeuralNets;
     explicit_imports = true,
+    api_docs_kwargs = (; rendered = true),
     ei_kwargs = (;
         # `unwrap`/`shape` are re-exported by Symbolics but owned by SymbolicUtils;
         # `initialparameters` is re-exported by Lux but owned by LuxCore. We use
