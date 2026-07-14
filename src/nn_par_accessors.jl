@@ -38,6 +38,25 @@ ModelingToolkitNeuralNets.isneuralnetwork(θ)
 isneuralnetwork(p) = _symbolic_metadata(p, NeuralNetworkParameter, false)
 
 """
+    ModelingToolkitNeuralNets.hasneuralnetwork(p)
+
+Returns `true` if the parameter has the `neuralnetwork` metadata set (whenever the value is `true` or `false`). This function is primarily intended for internal use within dependent packages.
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.hasneuralnetwork(d) # false
+ModelingToolkitNeuralNets.hasneuralnetwork(NN) # true
+ModelingToolkitNeuralNets.hasneuralnetwork(θ) # false
+````
+"""
+hasneuralnetwork(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = hasneuralnetwork(Symbolics.unwrap(p))
+function hasneuralnetwork(p::Symbolics.SymbolicT)
+    hasmetadata(p, NeuralNetworkParameter)
+end
+
+"""
     ModelingToolkitNeuralNets.isneuralnetworkps(p)
 
 Return whether `p` is the symbolic parameter vector for a neural network.
@@ -63,6 +82,25 @@ ModelingToolkitNeuralNets.isneuralnetworkps(θ)
 ```
 """
 isneuralnetworkps(p) = _symbolic_metadata(p, NeuralNetworkParametrisation, false)
+
+"""
+    ModelingToolkitNeuralNets.hasneuralnetworkps(p)
+
+Returns `true` if the parameter has the `neuralnetworkps` metadata set (whenever the value is `true` or `false`). This function is primarily intended for internal use within dependent packages.
+
+Example:
+```julia
+@parameters d
+@SymbolicNeuralNetwork NN, θ = chain
+ModelingToolkitNeuralNets.hasneuralnetworkps(d) # false
+ModelingToolkitNeuralNets.hasneuralnetworkps(NN) # false
+ModelingToolkitNeuralNets.hasneuralnetworkps(θ) # true
+````
+"""
+hasneuralnetworkps(p::Union{Symbolics.Num, Symbolics.Arr, Symbolics.CallAndWrap}) = hasneuralnetworkps(Symbolics.unwrap(p))
+function hasneuralnetworkps(p::Symbolics.SymbolicT)
+    hasmetadata(p, NeuralNetworkParametrisation)
+end
 
 
 ### Defines Other Accessors ###

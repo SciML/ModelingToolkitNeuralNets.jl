@@ -7,6 +7,8 @@ SymbolicNeuralNetwork
 multi_layer_feed_forward
 get_network
 ModelingToolkitNeuralNets.isneuralnetwork
+ModelingToolkitNeuralNets.hasneuralnetwork
 ModelingToolkitNeuralNets.isneuralnetworkps
+ModelingToolkitNeuralNets.hasneuralnetworkps
 ModelingToolkitNeuralNets.get_nn_chain
 ```
