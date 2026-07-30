@@ -3,11 +3,13 @@ module ModelingToolkitNeuralNets
 using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getdefault,
     getmetadata
 using IntervalSets: var".."
-using Symbolics: Symbolics, unwrap, wrap, shape
-using LuxCore: stateless_apply, outputsize
+using Symbolics: Symbolics, wrap
+using SymbolicUtils: unwrap
+using LuxCore: initialparameters, stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
 using ComponentArrays: ComponentArray
+using SciMLPublic: @public
 
 export NeuralNetworkBlock, SymbolicNeuralNetwork, @SymbolicNeuralNetwork, multi_layer_feed_forward, get_network
 
@@ -16,11 +18,13 @@ include("utils.jl")
 # Functionality for accessing various neural network-related parameter properties.
 include("nn_par_accessors.jl")
 
+@public isneuralnetwork, isneuralnetworkps, get_nn_chain
+
 """
     NeuralNetworkBlock(; n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
-        init_params = Lux.initialparameters(rng, chain),
+        init_params = initialparameters(rng, chain),
         eltype = Float64,
         name)
     NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
@@ -63,7 +67,7 @@ function NeuralNetworkBlock(;
         n_input = 1, n_output = 1,
         chain = multi_layer_feed_forward(n_input, n_output),
         rng = Xoshiro(0),
-        init_params = Lux.initialparameters(rng, chain),
+        init_params = initialparameters(rng, chain),
         eltype = Float64,
         name
     )
@@ -103,7 +107,7 @@ _ca_type(::CATypeTag{CAT}) where {CAT} = CAT
 
 function lazyconvert(T, x::Symbolics.Arr)
     CAT = _ca_type(getdefault(T))
-    return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = shape(x)))
+    return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = axes(x)))
 end
 
 """

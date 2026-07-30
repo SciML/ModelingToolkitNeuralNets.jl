@@ -4,14 +4,14 @@ struct NeuralNetworkParametrisation end
 Symbolics.option_to_metadata_type(::Val{:neuralnetwork}) = NeuralNetworkParameter
 Symbolics.option_to_metadata_type(::Val{:neuralnetworkps}) = NeuralNetworkParametrisation
 
-_symbolic_metadata(p, key, default) = _symbolic_metadata_unwrapped(Symbolics.unwrap(p), key, default)
+_symbolic_metadata(p, key, default) = _symbolic_metadata_unwrapped(unwrap(p), key, default)
 function _symbolic_metadata_unwrapped(p, key, default)
     return applicable(getmetadata, p, key, default) ? getmetadata(p, key, default) : default
 end
 
 ### Defines Metadata Getters ###
 """
-    ModelingToolkitNeuralNets.isneuralnetwork(p)
+    isneuralnetwork(p)
 
 Return whether `p` is the symbolic callable for a neural network.
 
@@ -38,7 +38,7 @@ ModelingToolkitNeuralNets.isneuralnetwork(θ)
 isneuralnetwork(p) = _symbolic_metadata(p, NeuralNetworkParameter, false)
 
 """
-    ModelingToolkitNeuralNets.isneuralnetworkps(p)
+    isneuralnetworkps(p)
 
 Return whether `p` is the symbolic parameter vector for a neural network.
 
@@ -68,7 +68,7 @@ isneuralnetworkps(p) = _symbolic_metadata(p, NeuralNetworkParametrisation, false
 ### Defines Other Accessors ###
 
 """
-    ModelingToolkitNeuralNets.get_nn_chain(p)
+    get_nn_chain(p)
 
 Return the Lux chain associated with a symbolic neural-network callable.
 
@@ -96,8 +96,8 @@ chain = multi_layer_feed_forward(1, 1)
 ModelingToolkitNeuralNets.get_nn_chain(NN) === chain
 ```
 """
-get_nn_chain(p) = _get_nn_chain_unwrapped(Symbolics.unwrap(p))
+get_nn_chain(p) = _get_nn_chain_unwrapped(unwrap(p))
 function _get_nn_chain_unwrapped(p)
     isneuralnetwork(p) || error("Parameter $p does not have a neural network chain associated with it.")
-    return getmetadata(p, Symbolics.VariableDefaultValue).lux_model
+    return get_network(getdefault(p))
 end
