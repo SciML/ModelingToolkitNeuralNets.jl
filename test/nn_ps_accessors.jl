@@ -2,6 +2,12 @@
 using ModelingToolkitBase, ModelingToolkitNeuralNets, Lux, Random
 using ModelingToolkitBase: t_nounits as t, D_nounits as D
 
+@static if VERSION >= v"1.11"
+    @test Base.ispublic(ModelingToolkitNeuralNets, :isneuralnetwork)
+    @test Base.ispublic(ModelingToolkitNeuralNets, :isneuralnetworkps)
+    @test Base.ispublic(ModelingToolkitNeuralNets, :get_nn_chain)
+end
+
 # Check that `isneuralnetwork` and `isneuralnetworkps` give correct input on various inputs.
 let
     # Tests on normally declared parameters.

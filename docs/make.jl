@@ -20,7 +20,8 @@ makedocs(;
         canonical = "https://docs.sciml.ai/ModelingToolkitNeuralNets.jl/stable/"
     ),
     clean = true,
-    doctest = false,
+    doctest = true,
+    checkdocs = :exports,
     linkcheck = true,
     pages = [
         "Home" => "index.md",
