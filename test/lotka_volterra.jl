@@ -119,8 +119,8 @@ ps = (prob, get_vars, data, ts, set_x);
 @test all(.!isnan.(∇l1))
 @test !iszero(∇l1)
 
-@test ∇l1 ≈ ∇l2 rtol = 1.0e-4 broken -= true
-@test ∇l1 ≈ ∇l3 broken = true
+@test ∇l1 ≈ ∇l2 rtol = 1.0e-4
+@test ∇l1 ≈ ∇l3
 
 op = OptimizationProblem(of, x0, ps)
 
