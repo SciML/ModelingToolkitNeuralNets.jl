@@ -3,6 +3,7 @@ using SciMLTesting
 
 run_tests(;
     core = function ()
+        @safetestset "Precompile workload" include("precompile_workload.jl")
         @safetestset "Basic" include("lotka_volterra.jl")
         @safetestset "MTK model macro compatibility" include("macro.jl")
         @safetestset "Symbolic Neural Network Macro" include("symbolicnn_macro.jl")
