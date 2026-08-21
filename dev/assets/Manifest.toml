@@ -476,9 +476,9 @@ version = "1.9.1"
 
 [[deps.DiffEqBase]]
 deps = ["ArrayInterface", "BracketingNonlinearSolve", "ConcreteStructs", "DocStringExtensions", "FastBroadcast", "FastClosures", "FastPower", "FunctionWrappers", "FunctionWrappersWrappers", "LinearAlgebra", "Logging", "Markdown", "MuladdMacro", "PrecompileTools", "Printf", "RecursiveArrayTools", "Reexport", "RespecializeParams", "SciMLBase", "SciMLLogging", "SciMLOperators", "SciMLStructures", "Setfield", "StaticArraysCore", "SymbolicIndexingInterface", "TruncatedStacktraces"]
-git-tree-sha1 = "3c6ceb2c59e132fd276ca16fdb0ecd043791d22d"
+git-tree-sha1 = "5a4cc8259b903c537e8df3acf80075351d207a15"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "7.18.0"
+version = "7.18.1"
 
     [deps.DiffEqBase.extensions]
     DiffEqBaseCUDAExt = "CUDA"
@@ -1844,7 +1844,7 @@ version = "1.67.0"
     Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [[deps.ModelingToolkitNeuralNets]]
-deps = ["ComponentArrays", "IntervalSets", "Lux", "LuxCore", "ModelingToolkitBase", "Random", "SciMLPublic", "SymbolicUtils", "Symbolics"]
+deps = ["ComponentArrays", "IntervalSets", "Lux", "LuxCore", "ModelingToolkitBase", "PrecompileTools", "Random", "SciMLPublic", "SymbolicUtils", "Symbolics"]
 path = "/home/runner/_work/ModelingToolkitNeuralNets.jl/ModelingToolkitNeuralNets.jl"
 uuid = "f162e290-f571-43a6-83d9-22ecc16da15f"
 version = "2.7.0"
@@ -2495,9 +2495,9 @@ version = "0.5.2+0"
 
 [[deps.Roots]]
 deps = ["Accessors", "CommonSolve", "Printf"]
-git-tree-sha1 = "7fb25a964849d90a0446366cdefca822e0e84900"
+git-tree-sha1 = "13a9e0164267bb9ebc55c1c5d72fceea8f09555b"
 uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "3.0.6"
+version = "3.0.7"
 
     [deps.Roots.extensions]
     RootsChainRulesCoreExt = "ChainRulesCore"
