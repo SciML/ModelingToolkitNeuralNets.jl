@@ -9,6 +9,7 @@ using LuxCore: initialparameters, stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
 using ComponentArrays: ComponentArray
+using PrecompileTools: @compile_workload, @setup_workload
 using SciMLPublic: @public
 
 export NeuralNetworkBlock, SymbolicNeuralNetwork, @SymbolicNeuralNetwork, multi_layer_feed_forward, get_network
@@ -313,6 +314,8 @@ _num_layer_inputs(layer) = error("@SymbolicNeuralNetwork has been provided with 
 _num_chain_outputs(chain::Lux.Chain) = _num_layer_outputs(chain.layers[end])
 _num_layer_outputs(layer::Lux.Dense) = layer.out_dims
 _num_layer_outputs(layer) = error("@SymbolicNeuralNetwork has been provided with a chain which last layer's type ($(typeof(layer))) is not supported for automatic output size detection. Please use the `SymbolicNeuralNetwork` function directly.")
+
+include("precompile.jl")
 
 # Layer types that can potentially be supported in the future.
 # _num_layer_inputs(layer::Lux.Bilinear) = layer.in1_dims + layer.in2_dims
