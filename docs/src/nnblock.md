@@ -212,6 +212,7 @@ using OptimizationOptimJL
 using LineSearches
 using Statistics
 using SciMLSensitivity
+using OptimizationOptimisers: Adam
 import SciMLLogging
 import Zygote
 
