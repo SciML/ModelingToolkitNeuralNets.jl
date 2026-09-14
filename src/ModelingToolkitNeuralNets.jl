@@ -8,7 +8,7 @@ using SymbolicUtils: unwrap
 using LuxCore: initialparameters, stateless_apply, outputsize
 using Lux: Lux
 using Random: Xoshiro
-using ComponentArrays: ComponentArray
+using ComponentArrays: ComponentArray, getaxes, getdata
 using PrecompileTools: @compile_workload, @setup_workload
 using SciMLPublic: @public
 
@@ -191,7 +191,10 @@ end
 function (wrapper::StatelessApplyWrapper{NN, CAT})(
         input::AbstractArray, nn_p::AbstractVector
     ) where {NN, CAT}
-    return stateless_apply(get_network(wrapper), input, convert(CAT, nn_p))
+    # Rebuild the parameter ComponentArray on `nn_p`'s own storage so device
+    # arrays stay on device; convert(CAT, nn_p) is only storage-lax incidentally.
+    ps = ComponentArray(getdata(nn_p), getaxes(CAT))
+    return stateless_apply(get_network(wrapper), input, ps)
 end
 
 function (wrapper::StatelessApplyWrapper)(input::Number, nn_p::AbstractVector)
