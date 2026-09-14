@@ -10,5 +10,11 @@ run_tests(;
         @safetestset "Neural Network Parameter Metadata" include("nn_ps_accessors.jl")
         return @safetestset "Reported issues" include("reported_issues.jl")
     end,
+    groups = Dict(
+        "CUDA" => (;
+            env = joinpath(@__DIR__, "gpu"),
+            body = joinpath(@__DIR__, "gpu", "cuda_tests.jl"),
+        ),
+    ),
     qa = joinpath(@__DIR__, "qa", "qa.jl"),
 )

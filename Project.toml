@@ -22,6 +22,7 @@ DifferentiationInterface = "0.7.21"
 ForwardDiff = "1.1"
 IntervalSets = "0.7.10"
 JET = "0.9, 0.10, 0.11"
+JLArrays = "0.3"
 Lux = "1.14"
 LuxCore = "1.2"
 ModelingToolkit = "11.39"
@@ -50,9 +51,11 @@ julia = "1.10"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
+JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 ModelingToolkitStandardLibrary = "16a59e39-deab-5bd0-87e4-056b12336739"
 OptimizationBase = "bca83a33-5cc9-4baa-983d-23429ab6bcbb"
@@ -71,4 +74,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = ["Aqua", "JET", "Test", "OrdinaryDiffEqVerner", "DifferentiationInterface", "SciMLSensitivity", "SciCompDSL", "Zygote", "ForwardDiff", "ModelingToolkit", "ModelingToolkitStandardLibrary", "OptimizationBase", "OptimizationOptimisers", "OptimizationOptimJL", "SafeTestsets", "SciMLStructures", "SciMLTesting", "StableRNGs", "Statistics", "SymbolicIndexingInterface"]
+test = ["Aqua", "JET", "Test", "OrdinaryDiffEqVerner", "DifferentiationInterface", "SciMLSensitivity", "SciCompDSL", "Zygote", "ForwardDiff", "ModelingToolkit", "ModelingToolkitStandardLibrary", "OptimizationBase", "OptimizationOptimisers", "OptimizationOptimJL", "SafeTestsets", "SciMLStructures", "SciMLTesting", "StableRNGs", "Statistics", "SymbolicIndexingInterface", "ComponentArrays", "JLArrays"]

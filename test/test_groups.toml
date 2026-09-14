@@ -7,3 +7,8 @@
 [All]
 versions = ["1", "lts"]
 os = ["ubuntu-latest", "macos-latest", "windows-latest"]
+
+# GPU group: CUDA sub-env on a self-hosted GPU runner (ubuntu only).
+[CUDA]
+versions = ["1"]
+runner = ["self-hosted", "Linux", "X64", "gpu"]
