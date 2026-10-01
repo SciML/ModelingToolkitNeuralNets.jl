@@ -56,24 +56,24 @@ t: 101-element Vector{Float64}:
 u: 101-element Vector{Vector{Float64}}:
  [0.0]
  [0.11693524394893327]
- [0.2281512262108343]
- [0.33445703690076717]
- [0.4368047256192944]
- [0.5361804950028548]
- [0.6335346088517151]
- [0.7297393267305404]
+ [0.2281512262108344]
+ [0.3344570369007713]
+ [0.43680472561929434]
+ [0.5361804950028553]
+ [0.6335346088517196]
+ [0.7297393267305555]
  [0.8255638431663777]
- [0.9216580746475652]
+ [0.921658074647565]
  ⋮
- [8.586398522181526]
- [8.662876552123254]
- [8.739051495229617]
- [8.814926325448004]
- [8.890503985665559]
- [8.965787387930437]
- [9.040779413677745]
+ [8.586398522181513]
+ [8.66287655212326]
+ [8.739051495229605]
+ [8.814926325448]
+ [8.89050398566554]
+ [8.965787387930376]
+ [9.040779413677717]
  [9.115482913959694]
- [9.189900709679812]</code></pre><p>Let&#39;s plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, label = &quot;velocity&quot;)</code></pre><img src="16e35b9a.svg" alt="Example block output"/><p>That was the velocity. Let&#39;s also plot the friction force acting on the object throughout the simulation.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;friction force&quot;)</code></pre><img src="8aa169b2.svg" alt="Example block output"/><h2 id="Model-Setup"><a class="docs-heading-anchor" href="#Model-Setup">Model Setup</a><a id="Model-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Setup" title="Permalink"></a></h2><p>Now, we will try to learn the same friction model using a neural network. We will use <a href="../api/#ModelingToolkitNeuralNets.NeuralNetworkBlock"><code>NeuralNetworkBlock</code></a> to define neural network as a component. The input of the neural network is the velocity and the output is the friction force. We connect the neural network with the model using <code>RealInputArray</code> and <code>RealOutputArray</code> blocks.</p><pre><code class="language-julia hljs">function friction_ude(Fu)
+ [9.189900709679812]</code></pre><p>Let&#39;s plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, label = &quot;velocity&quot;)</code></pre><img src="1f28accf.svg" alt="Example block output"/><p>That was the velocity. Let&#39;s also plot the friction force acting on the object throughout the simulation.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;friction force&quot;)</code></pre><img src="a070fde0.svg" alt="Example block output"/><h2 id="Model-Setup"><a class="docs-heading-anchor" href="#Model-Setup">Model Setup</a><a id="Model-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Setup" title="Permalink"></a></h2><p>Now, we will try to learn the same friction model using a neural network. We will use <a href="../api/#ModelingToolkitNeuralNets.NeuralNetworkBlock"><code>NeuralNetworkBlock</code></a> to define neural network as a component. The input of the neural network is the velocity and the output is the friction force. We connect the neural network with the model using <code>RealInputArray</code> and <code>RealOutputArray</code> blocks.</p><pre><code class="language-julia hljs">function friction_ude(Fu)
     @variables y(t) = 0.0
     @constants Fu = Fu
 
@@ -132,26 +132,26 @@ end
 op = OptimizationProblem(of, x0, (prob, sol_ref, get_vars, get_refs, set_x))
 res = solve(op, Adam(5e-3); maxiters = 10000, callback = cb)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: Default
 u: 120-element Vector{Float64}:
- -2.3641118239051244
- -2.419774918851507
-  2.055320415450407
- -0.2996514168515518
-  0.9657397049549725
- -2.4091508519390605
- -2.3218169930921397
-  0.5514058591881519
- -2.4364889220272428
- -2.4261682672782277
+ -2.3641118239054797
+ -2.419774918851712
+  2.0553204154500717
+ -0.29965141685155156
+  0.9657397049547768
+ -2.4091508519394
+ -2.3218169930925425
+  0.5514058591881048
+ -2.436488922027511
+ -2.4261682672784444
   ⋮
- -2.1177232506427255
-  1.2311467947326995
- -1.046447118867953
- -0.2511304265992438
- -1.5963945495231466
-  1.4534943415707542
- -2.282685181357005
- -1.4113413831916322
- -1.527895139642174</code></pre><h2 id="Visualization-of-results"><a class="docs-heading-anchor" href="#Visualization-of-results">Visualization of results</a><a id="Visualization-of-results-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization-of-results" title="Permalink"></a></h2><p>We now have a trained neural network! We can check whether running the simulation of the model embedded with the neural network matches the data or not.</p><pre><code class="language-julia hljs">res_p = set_x(prob, res.u)
+ -2.1177232506429973
+  1.231146794733079
+ -1.0464471188680935
+ -0.2511304265992771
+ -1.596394549523289
+  1.4534943415712722
+ -2.2826851813572833
+ -1.4113413831917014
+ -1.527895139642316</code></pre><h2 id="Visualization-of-results"><a class="docs-heading-anchor" href="#Visualization-of-results">Visualization of results</a><a id="Visualization-of-results-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization-of-results" title="Permalink"></a></h2><p>We now have a trained neural network! We can check whether running the simulation of the model embedded with the neural network matches the data or not.</p><pre><code class="language-julia hljs">res_p = set_x(prob, res.u)
 res_prob = remake(prob, p = res_p)
 res_sol = solve(res_prob, Vern7(), saveat = sol_ref.t)</code></pre><p>Also, it would be interesting to check the simulation before the training to get an idea of the starting point of the network.</p><pre><code class="language-julia hljs">initial_sol = solve(prob, Vern7(), saveat = sol_ref.t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: Success
 Interpolation: 1st order linear
@@ -186,7 +186,7 @@ u: 101-element Vector{Vector{Float64}}:
  [0.7207126935781871]
  [0.840972796524846]
  [0.9612707088491742]
- [1.081604377684849]
+ [1.0816043776848492]
  ⋮
  [11.145770756861761]
  [11.267936495193581]
@@ -198,6 +198,6 @@ u: 101-element Vector{Vector{Float64}}:
  [12.001431303808795]
  [12.123764224526417]</code></pre><p>Now we plot it.</p><pre><code class="language-julia hljs">scatter(sol_ref, idxs = [model_true.y], label = &quot;ground truth velocity&quot;)
 plot!(res_sol, idxs = [sys.y], label = &quot;velocity after training&quot;)
-plot!(initial_sol, idxs = [sys.y], label = &quot;velocity before training&quot;)</code></pre><img src="f4bbcbd0.svg" alt="Example block output"/><p>It matches the data well! Let&#39;s also check the predictions for the friction force and whether the network learnt the friction model or not.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;ground truth friction&quot;)
+plot!(initial_sol, idxs = [sys.y], label = &quot;velocity before training&quot;)</code></pre><img src="b5b250d7.svg" alt="Example block output"/><p>It matches the data well! Let&#39;s also check the predictions for the friction force and whether the network learnt the friction model or not.</p><pre><code class="language-julia hljs">scatter(sol_ref.t, friction.(first.(sol_ref.u)), label = &quot;ground truth friction&quot;)
 plot!(res_sol.t, getindex.(res_sol[sys.nn.outputs], 1),
-    label = &quot;friction from neural network&quot;)</code></pre><img src="d4f8483b.svg" alt="Example block output"/><p>It learns the friction model well!</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nnblock/">« NeuralNetworkBlock</a><a class="docs-footer-nextpage" href="../symbolic_ude_tutorial/">Symbolic UDE Creation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 24 September 2026 06:00">Thursday 24 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+    label = &quot;friction from neural network&quot;)</code></pre><img src="6f87f496.svg" alt="Example block output"/><p>It learns the friction model well!</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nnblock/">« NeuralNetworkBlock</a><a class="docs-footer-nextpage" href="../symbolic_ude_tutorial/">Symbolic UDE Creation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 1 October 2026 06:01">Thursday 1 October 2026</span>. Using Julia version 1.13.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
