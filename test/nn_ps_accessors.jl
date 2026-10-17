@@ -2,6 +2,12 @@
 using ModelingToolkitBase, ModelingToolkitNeuralNets, Lux, Random
 using ModelingToolkitBase: t_nounits as t, D_nounits as D
 
+@static if VERSION >= v"1.11"
+    @test Base.ispublic(ModelingToolkitNeuralNets, :isneuralnetwork)
+    @test Base.ispublic(ModelingToolkitNeuralNets, :isneuralnetworkps)
+    @test Base.ispublic(ModelingToolkitNeuralNets, :get_nn_chain)
+end
+
 # Check that `isneuralnetwork` and `isneuralnetworkps` give correct input on various inputs.
 let
     # Tests on normally declared parameters.
@@ -39,8 +45,8 @@ let
     @variables X(t) Y(t)
     @parameters d
     eqs = [
-        D(X) ~ NN([X], θ)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN([X], θ)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     @mtkcompile sys = System(eqs, t)
 
@@ -104,13 +110,14 @@ let
     @variables X(t) Y(t)
     @parameters d
     eqs = [
-        D(X) ~ NN([X], θ)[1] - d*X
-        D(Y) ~ X - d*Y
+        D(X) ~ NN([X], θ)[1] - d * X
+        D(Y) ~ X - d * Y
     ]
     @mtkcompile sys = System(eqs, t)
 
     # Checks accessor function.
     @test ModelingToolkitNeuralNets.get_nn_chain(NN) == chain
+    @test get_network(ModelingToolkitBase.getdefault(NN)) === chain
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(θ)
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(X)
     @test_throws ErrorException ModelingToolkitNeuralNets.get_nn_chain(d)

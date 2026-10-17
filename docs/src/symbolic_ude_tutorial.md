@@ -20,6 +20,7 @@ Next, we simulate our model for a true parameter set (which we wish to recover).
 
 ```@example symbolic_ude
 using OrdinaryDiffEqTsit5, Plots
+import SciMLLogging
 u0 = [X => 2.0, Y => 0.1]
 ps_true = [v => 1.1, K => 2.0, n => 3.0, d => 0.5]
 sim_cond = [u0; ps_true]
@@ -75,7 +76,7 @@ We can now fit our UDE model (including the neural network and the parameter d) 
 function loss(ps, (oprob_base, set_ps, sample_t, sample_X, sample_Y))
     p = set_ps(oprob_base, ps)
     new_oprob = remake(oprob_base; p)
-    new_osol = solve(new_oprob, Tsit5(); saveat = sample_t, verbose = false)
+    new_osol = solve(new_oprob, Tsit5(); saveat = sample_t, verbose = SciMLLogging.None())
     SciMLBase.successful_retcode(new_osol) || return Inf # Simulation failed -> Inf loss.
     x_error = sum((x_sim - x_data)^2 for (x_sim, x_data) in zip(new_osol[X], sample_X))
     y_error = sum((y_sim - y_data)^2 for (y_sim, y_data) in zip(new_osol[Y], sample_Y))

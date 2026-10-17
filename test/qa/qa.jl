@@ -1,0 +1,3 @@
+using SciMLTesting, ModelingToolkitNeuralNets
+
+run_qa(ModelingToolkitNeuralNets)

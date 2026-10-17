@@ -1,4 +1,5 @@
 using Test, Lux, ModelingToolkitNeuralNets, StableRNGs, ModelingToolkit
+using ComponentArrays, JLArrays
 using OrdinaryDiffEqVerner
 
 @testset "Scalar dispatch (issue #83)" begin
@@ -86,4 +87,42 @@ end
 
     @test ModelingToolkit.getname(NN) == nn_name
     @test ModelingToolkit.getname(NN_p) == nn_p_name
+end
+
+@testset "Device-generic parameter reconstruction (issue #161)" begin
+    rng = StableRNG(161)
+    chain = Lux.Chain(
+        Lux.Dense(1 => 3, Lux.softplus, use_bias = false),
+        Lux.Dense(3 => 3, Lux.softplus, use_bias = false),
+        Lux.Dense(3 => 1, Lux.sigmoid_fast, use_bias = false)
+    )
+    NN, p = SymbolicNeuralNetwork(; chain, n_input = 1, n_output = 1, rng)
+    wrapper = ModelingToolkit.getdefault(NN)
+    θ = Vector(ModelingToolkit.getdefault(p))
+    x = Float64[0.5]
+    y_ref = wrapper(x, θ)
+
+    # CPU arrays: behavior is unchanged.
+    @test y_ref isa Vector{Float64}
+    @test all(isfinite, y_ref)
+
+    # A flat parameter vector repackaged as a ComponentArray with a different
+    # axis layout is rebuilt on the network's declared axes. Previously
+    # `convert(CAT, θ)` returned it unchanged and the network's component
+    # lookups failed.
+    θ_other_axes = ComponentArray(θ, Axis(a = 1:length(θ)))
+    @test wrapper(x, θ_other_axes) ≈ y_ref
+
+    # Storage is preserved end to end: a device-array θ is rebuilt as a
+    # device-backed ComponentArray, so the output stays on the device.
+    x_dev = JLArray(x)
+    θ_dev = JLArray(θ)
+    y_dev = wrapper(x_dev, θ_dev)
+    @test y_dev isa JLArray{Float64, 1}
+    @test Array(y_dev) ≈ y_ref
+
+    # An already-device-backed ComponentArray θ is unwrapped and rebuilt on the
+    # declared axes without leaving the device.
+    θ_dev_ca = ComponentArray(θ_dev, Axis(a = 1:length(θ)))
+    @test wrapper(x_dev, θ_dev_ca) isa JLArray{Float64, 1}
 end
