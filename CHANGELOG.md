@@ -17,6 +17,9 @@
   - `NeuralNetworkBlock` now rebuilds its parameter `ComponentArray` on the storage of
     `p`, so device arrays stay on device (same as `SymbolicNeuralNetwork` since #162).
   - `get_nn_chain` now works on the `lux_apply` parameter of a `NeuralNetworkBlock`.
+  - `NeuralNetworkBlock` no longer fails for models whose output size Lux cannot infer
+    with `outputsize`, such as models converted with `ToSimpleChainsAdaptor`; the
+    output size check is skipped for them.
 
 # ModelingToolkitNeuralNets v2
 

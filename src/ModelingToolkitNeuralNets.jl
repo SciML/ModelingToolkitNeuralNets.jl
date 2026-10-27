@@ -82,9 +82,9 @@ function NeuralNetworkBlock(;
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
 
-    expected_outsz = only(outputsize(chain, inputs, rng))
+    expected_outsz = _try_outputsize(chain, inputs, rng)
     msg = "The outputsize of the given Lux network ($expected_outsz) does not match `n_output = $n_output`"
-    @assert n_output == expected_outsz msg
+    @assert expected_outsz === nothing || n_output == expected_outsz msg
 
     eqs = [outputs ~ lux_apply(inputs, p)]
 
@@ -92,6 +92,17 @@ function NeuralNetworkBlock(;
         eqs, t_nounits, [inputs, outputs], [lux_apply, p]; name
     )
     return ude_comp
+end
+
+# Lux computes `outputsize` by propagating nil arrays through the model, which fails for
+# layers that need real memory, such as `SimpleChainsLayer`. The size is only used for a
+# clearer error message, so skip the check when it cannot be computed.
+function _try_outputsize(chain, x, rng)
+    return try
+        only(outputsize(chain, x, rng))
+    catch
+        nothing
+    end
 end
 
 # added to avoid a breaking change from moving n_input & n_output in kwargs

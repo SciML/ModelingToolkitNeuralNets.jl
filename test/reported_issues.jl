@@ -134,3 +134,22 @@ end
     @test block_wrapper(x_dev, JLArray(θ_block)) isa JLArray{Float64, 1}
     @test Array(block_wrapper(x_dev, JLArray(θ_block))) ≈ y_ref
 end
+
+@testset "NeuralNetworkBlock with layers that need real memory" begin
+    # Lux's `outputsize` propagates nil arrays, which fails for layers that take a
+    # pointer to their input (e.g. `SimpleChainsLayer`). The output size check is
+    # only for a clearer error message, so it must not block construction.
+    chain = Lux.Chain(
+        Lux.WrappedFunction(x -> (pointer(x); x)),
+        multi_layer_feed_forward(2, 2)
+    )
+    @test_throws Exception Lux.outputsize(chain, zeros(2), StableRNG(1))
+    @named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(1))
+    wrapper = ModelingToolkit.getdefault(nn.lux_apply)
+    @test length(wrapper([0.1, 0.2], Vector(ModelingToolkit.getdefault(nn.p)))) == 2
+
+    # The check still applies when the size can be computed.
+    @test_throws AssertionError NeuralNetworkBlock(
+        2, 3; chain = multi_layer_feed_forward(2, 2), name = :nn
+    )
+end
