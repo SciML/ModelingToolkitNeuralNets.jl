@@ -3,10 +3,11 @@ module ModelingToolkitNeuralNets
 using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getdefault,
     getmetadata
 using IntervalSets: var".."
-using Symbolics: Symbolics, wrap
+using Symbolics: Symbolics
 using SymbolicUtils: unwrap
 using LuxCore: initialparameters, stateless_apply, outputsize
 using Lux: Lux
+using EnzymeCore: EnzymeRules
 using Random: Xoshiro
 using ComponentArrays: ComponentArray, getaxes, getdata
 using PrecompileTools: @compile_workload, @setup_workload
@@ -49,8 +50,8 @@ Create a ModelingToolkit component system that evaluates a Lux neural network.
 # Returns
 
 A `System` with input variables `inputs`, output variables `outputs`, tunable
-network parameters `p`, and non-tunable parameters storing the Lux model and
-parameter-container type.
+network parameters `p`, and the non-tunable callable parameter `lux_apply`, which
+stores the Lux model (see [`get_network`](@ref)).
 
 # Examples
 
@@ -73,12 +74,10 @@ function NeuralNetworkBlock(;
         name
     )
     ca = ComponentArray{eltype}(init_params)
-    ca_tag = CATypeTag{typeof(ca)}()
+    wrapper = StatelessApplyWrapper{typeof(chain), typeof(ca)}(chain)
 
     @parameters p[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
-    @parameters T::typeof(ca_tag) = ca_tag [tunable = false]
-    @parameters lux_model::typeof(chain) = chain [tunable = false]
-    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false, neuralnetwork = true]
+    @parameters (lux_apply::typeof(wrapper))(..)[1:n_output] = wrapper [tunable = false, neuralnetwork = true]
 
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
@@ -87,10 +86,10 @@ function NeuralNetworkBlock(;
     msg = "The outputsize of the given Lux network ($expected_outsz) does not match `n_output = $n_output`"
     @assert n_output == expected_outsz msg
 
-    eqs = [outputs ~ lux_apply(lux_model, inputs, lazyconvert(T, p))]
+    eqs = [outputs ~ lux_apply(inputs, p)]
 
     ude_comp = System(
-        eqs, t_nounits, [inputs, outputs], [lux_apply, lux_model, p, T]; name
+        eqs, t_nounits, [inputs, outputs], [lux_apply, p]; name
     )
     return ude_comp
 end
@@ -99,16 +98,6 @@ end
 # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/32
 function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
     return NeuralNetworkBlock(; n_input, n_output, kwargs...)
-end
-
-struct CATypeTag{CAT} end
-
-_ca_type(::CATypeTag{CAT}) where {CAT} = CAT
-@inline Base.convert(::CATypeTag{CAT}, x) where {CAT} = convert(CAT, x)
-
-function lazyconvert(T, x::Symbolics.Arr)
-    CAT = _ca_type(getdefault(T))
-    return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = axes(x)))
 end
 
 """

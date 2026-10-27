@@ -310,12 +310,11 @@ a symbolic expression for the function represented by the neural network.
 ```@example potplate
 using SymbolicRegression
 
-lux_model = new_sol1.ps[sys3.thermal_nn.nn.lux_model]
+nn = new_sol1.ps[sys3.thermal_nn.nn.lux_apply]
 nn_p = new_sol1.ps[sys3.thermal_nn.nn.p]
-T = new_sol1.ps[sys3.thermal_nn.nn.T]
 
 sr_input = reduce(hcat, new_sol1[sys3.thermal_nn.nn.inputs])
-sr_output = LuxCore.stateless_apply(lux_model, sr_input, convert(T, nn_p))
+sr_output = nn(sr_input, nn_p)
 
 equation_search(sr_input, sr_output)
 ```
