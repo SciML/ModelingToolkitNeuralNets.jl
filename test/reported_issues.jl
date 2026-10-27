@@ -125,4 +125,12 @@ end
     # declared axes without leaving the device.
     θ_dev_ca = ComponentArray(θ_dev, Axis(a = 1:length(θ)))
     @test wrapper(x_dev, θ_dev_ca) isa JLArray{Float64, 1}
+
+    # NeuralNetworkBlock uses the same wrapper, so it gets the same reconstruction.
+    @named nn = NeuralNetworkBlock(1, 1; chain, rng = StableRNG(161))
+    block_wrapper = ModelingToolkit.getdefault(nn.lux_apply)
+    θ_block = Vector(ModelingToolkit.getdefault(nn.p))
+    @test θ_block == θ
+    @test block_wrapper(x_dev, JLArray(θ_block)) isa JLArray{Float64, 1}
+    @test Array(block_wrapper(x_dev, JLArray(θ_block))) ≈ y_ref
 end
