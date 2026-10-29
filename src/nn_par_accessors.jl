@@ -75,7 +75,8 @@ Return the Lux chain associated with a symbolic neural-network callable.
 # Arguments
 
   - `p`: Symbolic callable parameter created by [`SymbolicNeuralNetwork`](@ref) or
-    [`@SymbolicNeuralNetwork`](@ref).
+    [`@SymbolicNeuralNetwork`](@ref), or the `lux_apply` parameter of a
+    [`NeuralNetworkBlock`](@ref), e.g. `get_nn_chain(sys.nn.lux_apply)`.
 
 # Returns
 

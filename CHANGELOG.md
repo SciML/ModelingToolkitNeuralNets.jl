@@ -19,7 +19,8 @@
   - `get_nn_chain` now works on the `lux_apply` parameter of a `NeuralNetworkBlock`.
   - `NeuralNetworkBlock` no longer fails for models whose output size Lux cannot infer
     with `outputsize`, such as models converted with `ToSimpleChainsAdaptor`; the
-    output size check is skipped for them.
+    output size check is skipped for them. A wrong `n_input` still errors at construction.
+  - EnzymeCore is now a direct dependency, used to mark `ScaledInit` as inactive.
 
 # ModelingToolkitNeuralNets v2
 

@@ -217,11 +217,13 @@ Return the Lux model stored by a symbolic neural-network callable.
 # Arguments
 
   - `wrapper`: A callable wrapper obtained from the default value of a neural-network
-    parameter created by [`SymbolicNeuralNetwork`](@ref).
+    parameter created by [`SymbolicNeuralNetwork`](@ref), or of the `lux_apply`
+    parameter of a [`NeuralNetworkBlock`](@ref).
 
 # Returns
 
-The Lux model passed as the `chain` keyword when constructing the symbolic neural network.
+The Lux model passed as the `chain` keyword when constructing the symbolic neural network
+or the block.
 
 # Examples
 
