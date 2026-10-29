@@ -41,13 +41,29 @@ function multi_layer_feed_forward(;
         [Lux.Dense(width, width, activation; use_bias) for _ in 1:(depth)]...,
         Lux.Dense(
             width, n_output;
-            init_weight = (
-                rng, a...,
-            ) -> initial_scaling_factor *
-                Lux.kaiming_uniform(rng, a...), use_bias
+            init_weight = ScaledInit(Lux.kaiming_uniform, initial_scaling_factor), use_bias
         )
     )
 end
+
+"""
+    ScaledInit(init, scale)
+
+Weight initializer that multiplies the output of `init(rng, dims...)` by `scale`.
+
+A callable struct instead of a closure, so that it can be marked as inactive for Enzyme.
+Otherwise the `Float64` scale makes Enzyme treat the whole Lux model as potentially
+active and rebuild its shadow on every `make_zero`. Marking it inactive is sound because
+it is only called by `initialparameters`, never in the differentiated forward pass.
+"""
+struct ScaledInit{F, T}
+    init::F
+    scale::T
+end
+
+(f::ScaledInit)(rng, dims...) = f.scale * f.init(rng, dims...)
+
+EnzymeRules.inactive_type(::Type{<:ScaledInit}) = true
 
 function multi_layer_feed_forward(n_input, n_output; kwargs...)
     return multi_layer_feed_forward(; n_input, n_output, kwargs...)

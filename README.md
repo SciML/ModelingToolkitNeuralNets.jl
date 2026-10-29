@@ -13,6 +13,14 @@ ModelingToolkitNeuralNets.jl is a package to create neural network blocks define
 
 For information on using the package, [see the stable documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/stable/). Use the [in-development documentation](https://docs.sciml.ai/ModelingToolkitNeuralNets/dev/) for the version of the documentation, which contains the unreleased features.
 
+## Breaking changes in v3
+
+The `NeuralNetworkBlock` now stores the Lux model in a single callable parameter, `lux_apply`,
+like `SymbolicNeuralNetwork`, and its equation is `outputs ~ lux_apply(inputs, p)`.
+The `lux_model` and `T` parameters were removed.
+To evaluate the network after solving, use `sol.ps[sys.nn.lux_apply](input, p)`,
+and to get the Lux model use `get_nn_chain(sys.nn.lux_apply)`.
+
 ## Breaking changes in v2
 
 The `NeuralNetworkBlock` no longer uses `RealInputArray` & `RealOutputArray`,
