@@ -96,11 +96,14 @@ end
 
 # Lux computes `outputsize` by propagating nil arrays through the model, which fails for
 # layers that need real memory, such as `SimpleChainsLayer`. The size is only used for a
-# clearer error message, so skip the check when it cannot be computed.
+# clearer error message, so skip the check when it cannot be computed. Base reports this as
+# a plain `ErrorException` ("conversion to pointer not defined for ...NilArray..."); any
+# other error, e.g. a `DimensionMismatch` from a wrong `n_input`, is a real model error.
 function _try_outputsize(chain, x, rng)
     return try
         only(outputsize(chain, x, rng))
-    catch
+    catch e
+        e isa ErrorException && occursin("NilArray", e.msg) || rethrow()
         nothing
     end
 end

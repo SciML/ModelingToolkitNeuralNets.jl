@@ -152,4 +152,8 @@ end
     @test_throws AssertionError NeuralNetworkBlock(
         2, 3; chain = multi_layer_feed_forward(2, 2), name = :nn
     )
+    # A wrong `n_input` must still fail at construction, not only later in `solve`.
+    @test_throws DimensionMismatch NeuralNetworkBlock(
+        3, 2; chain = multi_layer_feed_forward(2, 2), name = :nn
+    )
 end
