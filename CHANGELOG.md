@@ -7,6 +7,7 @@
     removed and the equation is now `outputs ~ lux_apply(inputs, p)`.
     To evaluate the network outside the system, use `nn = sol.ps[sys.nn.lux_apply]`
     and call `nn(input, p)`, or get the Lux model with `get_nn_chain(sys.nn.lux_apply)`.
+  - Lux 1.31.5 or newer is required, the first release that allows SimpleChains 0.5.
 
 ## Improvements
 

@@ -14,7 +14,7 @@ ModelingToolkitNeuralNets = { path = "../.." }
 [compat]
 CUDA = "5, 6"
 ComponentArrays = "0.15.28"
-Lux = "1.14"
+Lux = "1.31.5"
 ModelingToolkitBase = "1.66.0"
 ModelingToolkitNeuralNets = "3"
 SafeTestsets = "0.1"

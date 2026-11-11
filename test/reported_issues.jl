@@ -1,5 +1,5 @@
 using Test, Lux, ModelingToolkitNeuralNets, StableRNGs, ModelingToolkit
-using ComponentArrays, JLArrays
+using ComponentArrays, JLArrays, SimpleChains
 using OrdinaryDiffEqVerner
 
 @testset "Scalar dispatch (issue #83)" begin
@@ -156,4 +156,19 @@ end
     @test_throws DimensionMismatch NeuralNetworkBlock(
         3, 2; chain = multi_layer_feed_forward(2, 2), name = :nn
     )
+end
+
+@testset "NeuralNetworkBlock with a SimpleChains model" begin
+    lux_chain = Lux.Chain(Lux.Dense(2 => 4, tanh), Lux.Dense(4 => 2))
+    chain = ToSimpleChainsAdaptor((2,))(lux_chain)
+    @named nn = NeuralNetworkBlock(2, 2; chain, rng = StableRNG(1))
+    wrapper = ModelingToolkit.getdefault(nn.lux_apply)
+    θ = Vector(ModelingToolkit.getdefault(nn.p))
+    ps, st = Lux.setup(StableRNG(1), chain)
+    @test θ == vec(ps.params)
+    x = [0.1, 0.2]
+    @test wrapper(x, θ) ≈ first(chain(x, ps, st))
+
+    # SimpleChains reports a wrong input size as an `ArgumentError`.
+    @test_throws ArgumentError NeuralNetworkBlock(3, 2; chain, name = :nn)
 end
