@@ -81,22 +81,20 @@ let
 
     # Check that content have the correct metadata tags.
     @test ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.nn.lux_apply)
-    @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.nn.lux_model)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.nn.p)
-    @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.nn.T)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.α)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.δ)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.x)
     @test !ModelingToolkitNeuralNets.isneuralnetwork(sys_nnblock.y)
 
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.lux_apply)
-    @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.lux_model)
     @test ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.p)
-    @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.nn.T)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.α)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.δ)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.x)
     @test !ModelingToolkitNeuralNets.isneuralnetworkps(sys_nnblock.y)
+
+    @test ModelingToolkitNeuralNets.get_nn_chain(sys_nnblock.nn.lux_apply) == chain
 end
 
 # Checks the `get_nn_chain` accessor function.

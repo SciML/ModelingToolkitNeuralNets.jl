@@ -3,10 +3,11 @@ module ModelingToolkitNeuralNets
 using ModelingToolkitBase: @parameters, @variables, System, t_nounits, getdefault,
     getmetadata
 using IntervalSets: var".."
-using Symbolics: Symbolics, wrap
+using Symbolics: Symbolics
 using SymbolicUtils: unwrap
 using LuxCore: initialparameters, stateless_apply, outputsize
 using Lux: Lux
+using EnzymeCore: EnzymeRules
 using Random: Xoshiro
 using ComponentArrays: ComponentArray, getaxes, getdata
 using PrecompileTools: @compile_workload, @setup_workload
@@ -49,8 +50,8 @@ Create a ModelingToolkit component system that evaluates a Lux neural network.
 # Returns
 
 A `System` with input variables `inputs`, output variables `outputs`, tunable
-network parameters `p`, and non-tunable parameters storing the Lux model and
-parameter-container type.
+network parameters `p`, and the non-tunable callable parameter `lux_apply`, which
+stores the Lux model (see [`get_network`](@ref)).
 
 # Examples
 
@@ -73,42 +74,44 @@ function NeuralNetworkBlock(;
         name
     )
     ca = ComponentArray{eltype}(init_params)
-    ca_tag = CATypeTag{typeof(ca)}()
+    wrapper = StatelessApplyWrapper{typeof(chain), typeof(ca)}(chain)
 
     @parameters p[1:length(ca)] = Vector(ca) [tunable = true, neuralnetworkps = true]
-    @parameters T::typeof(ca_tag) = ca_tag [tunable = false]
-    @parameters lux_model::typeof(chain) = chain [tunable = false]
-    @parameters (lux_apply::typeof(stateless_apply))(..)[1:n_output] = stateless_apply [tunable = false, neuralnetwork = true]
+    @parameters (lux_apply::typeof(wrapper))(..)[1:n_output] = wrapper [tunable = false, neuralnetwork = true]
 
     @variables inputs(t_nounits)[1:n_input] [input = true]
     @variables outputs(t_nounits)[1:n_output] [output = true]
 
-    expected_outsz = only(outputsize(chain, inputs, rng))
+    expected_outsz = _try_outputsize(chain, inputs, rng)
     msg = "The outputsize of the given Lux network ($expected_outsz) does not match `n_output = $n_output`"
-    @assert n_output == expected_outsz msg
+    @assert expected_outsz === nothing || n_output == expected_outsz msg
 
-    eqs = [outputs ~ lux_apply(lux_model, inputs, lazyconvert(T, p))]
+    eqs = [outputs ~ lux_apply(inputs, p)]
 
     ude_comp = System(
-        eqs, t_nounits, [inputs, outputs], [lux_apply, lux_model, p, T]; name
+        eqs, t_nounits, [inputs, outputs], [lux_apply, p]; name
     )
     return ude_comp
+end
+
+# Lux computes `outputsize` by propagating nil arrays through the model, which fails for
+# layers that need real memory, such as `SimpleChainsLayer`. The size is only used for a
+# clearer error message, so skip the check when it cannot be computed. Base reports this as
+# a plain `ErrorException` ("conversion to pointer not defined for ...NilArray..."); any
+# other error, e.g. a `DimensionMismatch` from a wrong `n_input`, is a real model error.
+function _try_outputsize(chain, x, rng)
+    return try
+        only(outputsize(chain, x, rng))
+    catch e
+        e isa ErrorException && occursin("NilArray", e.msg) || rethrow()
+        nothing
+    end
 end
 
 # added to avoid a breaking change from moving n_input & n_output in kwargs
 # https://github.com/SciML/ModelingToolkitNeuralNets.jl/issues/32
 function NeuralNetworkBlock(n_input, n_output = 1; kwargs...)
     return NeuralNetworkBlock(; n_input, n_output, kwargs...)
-end
-
-struct CATypeTag{CAT} end
-
-_ca_type(::CATypeTag{CAT}) where {CAT} = CAT
-@inline Base.convert(::CATypeTag{CAT}, x) where {CAT} = convert(CAT, x)
-
-function lazyconvert(T, x::Symbolics.Arr)
-    CAT = _ca_type(getdefault(T))
-    return wrap(Symbolics.term(convert, T, unwrap(x); type = CAT, shape = axes(x)))
 end
 
 """
@@ -214,11 +217,13 @@ Return the Lux model stored by a symbolic neural-network callable.
 # Arguments
 
   - `wrapper`: A callable wrapper obtained from the default value of a neural-network
-    parameter created by [`SymbolicNeuralNetwork`](@ref).
+    parameter created by [`SymbolicNeuralNetwork`](@ref), or of the `lux_apply`
+    parameter of a [`NeuralNetworkBlock`](@ref).
 
 # Returns
 
-The Lux model passed as the `chain` keyword when constructing the symbolic neural network.
+The Lux model passed as the `chain` keyword when constructing the symbolic neural network
+or the block.
 
 # Examples
 
